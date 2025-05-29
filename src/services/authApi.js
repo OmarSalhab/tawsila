@@ -24,8 +24,19 @@ export const login = async (data) => {
 			throw error.response.data;
 		} else if (error?.response?.data?.errors) {
 			throw error.response.data.errors[0];
-		}else {
-            throw { msg: "An unexpected error occurred" };
-        }
+		} else {
+			throw { msg: "An unexpected error occurred" };
+		}
+	}
+};
+
+export const getUserInfo = async () => {
+	try {
+		const response = await apiClient.get("/api/users/me");
+
+		if (!response.data) throw new Error(response);
+		return response.data;
+	} catch (error) {
+		console.log(error.message);
 	}
 };

@@ -24,13 +24,11 @@ export default function Profile({ open, onClose }) {
 						<User className="w-16 h-16 text-gray-400" />
 					</span>
 					<span className="absolute top-24 left-1/2 -translate-x-1/2 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold border border-blue-200">
-						Male
+						{user?.gender}
 					</span>
 					<div className="mt-6 text-center">
-						<div className="text-xl font-bold">{user.name}</div>
-						<div className="text-gray-500 text-sm mt-1 mb-2">
-							{user.phone}
-						</div>
+						<div className="text-xl font-bold">{user?.name}</div>
+						<div className="text-gray-500 text-sm mt-1 mb-2">{user?.phone}</div>
 						<div className="flex items-center justify-center gap-1 mb-2">
 							<span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-sm font-semibold flex items-center">
 								<svg
@@ -47,7 +45,7 @@ export default function Profile({ open, onClose }) {
 										d="M11.48 3.499a.562.562 0 011.04 0l2.125 4.307a.563.563 0 00.424.307l4.749.693c.462.067.646.636.312.96l-3.432 3.343a.563.563 0 00-.162.5l.81 4.725c.079.462-.406.815-.823.598l-4.243-2.23a.563.563 0 00-.523 0l-4.243 2.23c-.417.217-.902-.136-.823-.598l.81-4.726a.563.563 0 00-.162-.499L2.344 9.766c-.334-.324-.15-.893.312-.96l4.75-.693a.563.563 0 00.424-.307l2.125-4.307z"
 									/>
 								</svg>
-								{user.ratingValue}
+								{user?.ratingValue}
 							</span>
 						</div>
 					</div>
@@ -58,7 +56,9 @@ export default function Profile({ open, onClose }) {
 						</div>
 						<div className="flex justify-between text-sm mb-1">
 							<span className="text-gray-500">Member since</span>
-							<span className="font-medium text-gray-900">May 2023</span>
+							<span className="font-medium text-gray-900">
+								{user?.createdAt}
+							</span>
 						</div>
 						<div className="flex justify-between text-sm mb-1">
 							<span className="text-gray-500">Total rides</span>
@@ -66,7 +66,7 @@ export default function Profile({ open, onClose }) {
 						</div>
 						<div className="flex justify-between text-sm">
 							<span className="text-gray-500">Role</span>
-							<span className="font-medium text-gray-900">Passenger</span>
+							<span className="font-medium text-gray-900">{user?.role}</span>
 						</div>
 					</div>
 					<div className="flex flex-col w-full gap-2 text-base">

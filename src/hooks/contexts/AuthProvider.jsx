@@ -1,5 +1,5 @@
-import { useReducer, useCallback, useEffect } from "react";
-import { login as loginApi } from "../../services/authApi";
+import { useReducer, useCallback, useEffect, useLayoutEffect } from "react";
+import { login as loginApi, getUserInfo } from "../../services/authApi";
 import { AuthContext } from "./useAuth";
 
 const initialState = {
@@ -39,7 +39,7 @@ function authReducer(state, action) {
 			return {
 				...state,
 				user: action.payload,
-			}
+			};
 		default:
 			return state;
 	}
@@ -48,11 +48,17 @@ function authReducer(state, action) {
 const AuthProvider = ({ children }) => {
 	const [state, dispatch] = useReducer(authReducer, initialState);
 
+	//here i should check the token validite
+	useLayoutEffect(() => {}, []);
 
-	useEffect(()=>{
-		const getUser
-		dispatch()
-	},[state.user])
+	useEffect(() => {
+		const getUser = async () => {
+			const response = await getUserInfo();
+			if (!response) throw new Error("users state didnt set");
+			dispatch({ type: "SET_USER", payload: response });
+		};
+		getUser();
+	}, []);
 	const login = useCallback(async (data) => {
 		try {
 			dispatch({ type: "LOGIN_START" });
@@ -70,7 +76,6 @@ const AuthProvider = ({ children }) => {
 	const logout = useCallback(() => {
 		dispatch({ type: "LOGOUT" });
 		localStorage.removeItem("token");
-		localStorage.removeItem("user");
 	}, []);
 
 	return (
