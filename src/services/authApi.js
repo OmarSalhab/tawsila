@@ -18,6 +18,8 @@ export const signupPassenger = async (data) => {
 export const login = async (data) => {
 	try {
 		const response = await apiClient.post("/api/users/login", data);
+		console.log(response);
+		
 		return response.data;
 	} catch (error) {
 		if (error?.response?.data?.msg) {
@@ -40,3 +42,24 @@ export const getUserInfo = async () => {
 		console.log(error.message);
 	}
 };
+
+export const postRefresh = async () => {
+	try {
+		const response = await apiClient.get(
+			"/api/users/refresh",
+			{ withCredentials: true }
+		);
+		
+		return response.data;
+	} catch (error) {
+		throw new Error(error.message);
+	}
+};
+
+export const logout = async ()=>{
+	try {
+		const response = await apiClient.post("/api/users/logout");
+	} catch (error) {
+		
+	}
+}

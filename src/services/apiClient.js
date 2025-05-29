@@ -1,8 +1,9 @@
 import axios from "axios";
 const publicEndpoints = [
-	"api/users/login",
-	"api/users/register/passenger",
-	"api/users/register/driver",
+	"/api/users/login",
+	"/api/users/register/passenger",
+	"/api/users/register/driver",
+	"/api/users/refresh",
 ];
 
 const apiClient = axios.create({
@@ -18,9 +19,10 @@ apiClient.interceptors.request.use(
 	(config) => {
 		const isPublicEndpoint = publicEndpoints.some((endpoint) =>
 			config.url.includes(endpoint)
-	);
-	if (!isPublicEndpoint) {
 		
+	);
+	
+	if (!isPublicEndpoint) {
 		const token = localStorage.getItem("token");
 			if (token) {
 				config.headers.Authorization = `Bearer ${token}`;
