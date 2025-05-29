@@ -6,8 +6,10 @@ import {
 	CreditCard,
 	UploadCloud,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Signup() {
+	const navigate = useNavigate();
 	return (
 		<div className="min-h-screen flex flex-col items-center bg-gray-50">
 			<div className="w-full bg-primary py-8 flex justify-center">
@@ -170,12 +172,14 @@ export default function Signup() {
 					<button
 						type="button"
 						className="text-primary font-medium hover:underline mr-2"
+						onClick={()=>{navigate('/login')}}
 					>
 						Log In
 					</button>
 					<button
 						type="button"
 						className="text-primary font-medium hover:underline"
+						onClick={()=>{navigate('/role')}}
 					>
 						Change Role
 					</button>

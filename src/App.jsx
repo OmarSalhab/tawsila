@@ -1,9 +1,13 @@
 import "./App.css";
-import Ride from "./pages/passenger/ride";
+import RouteComponents from "./routes";
+
+
 function App() {
-	return <>
-	<Ride/>
-	</>;
+	return (
+		
+			<RouteComponents />
+		
+	);
 }
 
 export default App;

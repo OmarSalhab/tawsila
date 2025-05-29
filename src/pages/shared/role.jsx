@@ -1,9 +1,10 @@
 import { User, Car } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Role() {
 	const [selected, setSelected] = useState(null);
-
+	const navigate = useNavigate();
 	return (
 		<div className="min-h-screen flex flex-col items-center bg-gray-50">
 			<div className="w-full bg-primary py-8 flex justify-center">
@@ -24,7 +25,7 @@ export default function Role() {
 								? "border-primary scale-95"
 								: "border-gray-200"
 						}`}
-						onClick={() => handleSelect("passenger", setSelected)}
+						onClick={() => handleSelect("passenger", setSelected, navigate)}
 					>
 						<span className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-3">
 							<User className="w-8 h-8 text-primary" />
@@ -44,7 +45,7 @@ export default function Role() {
 								? "border-primary scale-95"
 								: "border-gray-200"
 						}`}
-						onClick={() => handleSelect("rider", setSelected)}
+						onClick={() => handleSelect("driver", setSelected, navigate)}
 					>
 						<span className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-3">
 							<Car className="w-8 h-8 text-primary" />
@@ -64,7 +65,8 @@ export default function Role() {
 }
 
 // Placeholder event handler
-function handleSelect(role, setSelected) {
+function handleSelect(role, setSelected, navigate) {
 	setSelected(role);
+	navigate(`/signup-${role}`);
 	// Add any additional logic for selection here
 }
