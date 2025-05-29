@@ -59,7 +59,8 @@ export const postRefresh = async () => {
 export const logout = async ()=>{
 	try {
 		const response = await apiClient.post("/api/users/logout");
+		return response.data
 	} catch (error) {
-		
+		console.log(error);
 	}
 }
