@@ -4,7 +4,8 @@ export const signupPassenger = async (data) => {
 	try {
 		const response = await apiClient.post(
 			"/api/users/register/passenger",
-			data
+			data,
+			{ withCredentials: true }
 		);
 		if (response.status === 201) return response.data;
 	} catch (error) {
@@ -17,9 +18,9 @@ export const signupPassenger = async (data) => {
 
 export const login = async (data) => {
 	try {
-		const response = await apiClient.post("/api/users/login", data);
-		console.log(response);
-		
+		const response = await apiClient.post("/api/users/login", data, {
+			withCredentials: true,
+		});
 		return response.data;
 	} catch (error) {
 		if (error?.response?.data?.msg) {
@@ -34,33 +35,39 @@ export const login = async (data) => {
 
 export const getUserInfo = async () => {
 	try {
-		const response = await apiClient.get("/api/users/me");
-
-		if (!response.data) throw new Error(response);
+		const response = await apiClient.get("/api/users/me", {
+			withCredentials: true,
+		});
 		return response.data;
 	} catch (error) {
-		console.log(error.message);
+		throw error.response?.data || error;
 	}
 };
 
 export const postRefresh = async () => {
 	try {
-		const response = await apiClient.get(
-			"/api/users/refresh",
-			{ withCredentials: true }
-		);
+		const response = await fetch("http://localhost:9001/api/users/refresh", {
+			method: "GET",
+			credentials: "include",
+		});
+		console.log(response);
 		
-		return response.data;
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+		
+		const data = await response.json();
+		console.log(data);
+		  return data;
 	} catch (error) {
-		throw new Error(error.message);
+		throw error.response?.data || error;
 	}
 };
 
-export const logout = async ()=>{
+export const logout = async () => {
 	try {
-		const response = await apiClient.post("/api/users/logout");
-		return response.data
+		await apiClient.post("/api/users/logout", {}, { withCredentials: true });
 	} catch (error) {
-		console.log(error);
+		throw error.response?.data || error;
 	}
-}
+};

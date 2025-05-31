@@ -1,10 +1,15 @@
 import { X, User } from "lucide-react";
 import useAuth from "../hooks/contexts/useAuth";
+import ProfileSetting from "./profileSetting";
+import { useState } from "react";
 export default function Profile({ open, onClose }) {
 	const { user, logout } = useAuth();
+	const [isProfileOpen, setIsProfileOpen] = useState(false);
 	const handleLogout = async () => {
 		await logout();
 	};
+	console.log("profile component: ",user);
+	
 	if (!open) return null;
 	return (
 		<div className="fixed inset-0 z-50 flex">
@@ -79,6 +84,7 @@ export default function Profile({ open, onClose }) {
 						<button
 							type="button"
 							className="text-left py-2 px-2 rounded hover:bg-gray-100"
+							onClick={()=>{setIsProfileOpen(true)}}
 						>
 							Settings
 						</button>
@@ -98,6 +104,9 @@ export default function Profile({ open, onClose }) {
 					</button>
 				</div>
 			</div>
+			{isProfileOpen && (
+				<ProfileSetting user={user} onClose={() => setIsProfileOpen(false)} />
+			)}
 		</div>
 	);
 }

@@ -49,6 +49,7 @@ function authReducer(state, action) {
 			return {
 				...state,
 				user: action.payload,
+				isAuthenticated: true,
 			};
 		default:
 			return state;
@@ -86,8 +87,11 @@ const AuthProvider = ({ children }) => {
 	useEffect(() => {
 		const checkToken = async () => {
 			try {
-				const user = await getUserInfo();
-				dispatch({ type: "SET_USER", payload: user });
+				const response = await postRefresh();
+				dispatch({
+					type: "AUTH_SUCCESS",
+					payload: { user: response.user[0], token: response.accessToken },
+				});
 			} catch (error) {
 				dispatch({ type: "AUTH_FAILURE", payload: error });
 			}
@@ -96,44 +100,42 @@ const AuthProvider = ({ children }) => {
 	}, []);
 
 	// Request interceptor
-	useLayoutEffect(() => {
-		const authInterceptor = apiClient.interceptors.request.use(
-			(config) => {
-				const isPublicEndpoint = publicEndpoints.some((endpoint) =>
-					config.url.includes(endpoint)
-				);
+	useEffect(() => {
+		const authInterceptor = apiClient.interceptors.request.use((config) => {
+			const isPublicEndpoint = publicEndpoints.some((endpoint) =>
+				config.url.includes(endpoint)
+			);
 
-				if (!isPublicEndpoint) {
-					const token = state.token;
+			if (!isPublicEndpoint) {
+				const token = state.token;
 
-					config.headers.Authorization =
-						!config._retry && token
-							? `Bearer ${token}`
-							: config.headers.Authorization;
-				}
-				return config;
-			},
-			(error) => {
-				return Promise.reject(error);
+				config.headers.Authorization =
+					!config._retry && token
+						? `Bearer ${token}`
+						: config.headers.Authorization;
 			}
-		);
+			return config;
+		});
 		return () => {
 			apiClient.interceptors.request.eject(authInterceptor);
 		};
 	}, [state.token]);
-	
+
 	// Response interceptor
-	useLayoutEffect(() => {
+	useEffect(() => {
 		const refreshInterceptor = apiClient.interceptors.response.use(
 			(response) => response,
 			async (error) => {
 				const originalRequest = error.config;
+				console.log(error.response.status);
+
 				if (
-					error.response.status === 403 &&
-					error.response.data.message === "Not authorized"
+					error.response.status === 401 ||
+					error.response.data.message === "Unauthorized"
 				) {
 					try {
 						const response = await postRefresh();
+
 						dispatch({
 							type: "AUTH_SUCCESS",
 							payload: { token: response.accessToken, user: response.user },

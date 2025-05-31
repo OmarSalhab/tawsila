@@ -1,6 +1,6 @@
 import { ArrowLeft, User } from "lucide-react";
 import { useState } from "react";
-import RideChat from "../../components/RideChat";
+import RideChat from "../../components/rideChat";
 
 const ride = {
 	driverName: "Ahmad",

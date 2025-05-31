@@ -16,25 +16,24 @@ import useAuth from "../hooks/contexts/useAuth";
 const RouteComponents = () => {
 	return (
 		<BrowserRouter>
-			<ToastProvider>
-				<AuthProvider>
+			<AuthProvider>
+				<ToastProvider>
 					<AppRoutes />
-				</AuthProvider>
-			</ToastProvider>
+				</ToastProvider>
+			</AuthProvider>
 		</BrowserRouter>
 	);
 };
 
 const AppRoutes = () => {
-	const { isAuthenticated } = useAuth();
-	
+	const { token } = useAuth();
 
 	return (
 		<Routes>
 			<Route
 				path="/"
 				element={
-					isAuthenticated ? (
+					token ? (
 						<PassengerHomePage />
 					) : (
 						<Navigate to="/login" replace />
@@ -49,7 +48,7 @@ const AppRoutes = () => {
 			<Route
 				path="/home-driver"
 				element={
-					isAuthenticated ? (
+					token ? (
 						<DriverHomePage />
 					) : (
 						<Navigate to="/login" replace />
@@ -59,7 +58,7 @@ const AppRoutes = () => {
 			<Route
 				path="/home-passenger"
 				element={
-					isAuthenticated ? (
+					token ? (
 						<PassengerHomePage />
 					) : (
 						<Navigate to="/login" replace />
