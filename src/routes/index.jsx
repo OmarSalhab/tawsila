@@ -12,6 +12,7 @@ import NotFoundPage from "../containers/NotFoundPage";
 import { ToastProvider } from "../hooks/contexts/ToastProvider";
 import AuthProvider from "../hooks/contexts/AuthProvider";
 import useAuth from "../hooks/contexts/useAuth";
+import LoadingSkeleton from "../components/loadingSkeleton";
 
 const RouteComponents = () => {
 	return (
@@ -27,17 +28,13 @@ const RouteComponents = () => {
 
 const AppRoutes = () => {
 	const { token } = useAuth();
-
+	if (token === undefined) return <LoadingSkeleton />;
 	return (
 		<Routes>
 			<Route
 				path="/"
 				element={
-					token ? (
-						<PassengerHomePage />
-					) : (
-						<Navigate to="/login" replace />
-					)
+					token ? <PassengerHomePage /> : <Navigate to="/login" replace />
 				}
 			/>
 			<Route path="/login" element={<SharedLoginPage />} />
@@ -47,22 +44,12 @@ const AppRoutes = () => {
 			<Route path="/signup-passenger" element={<PassengerSignupPage />} />
 			<Route
 				path="/home-driver"
-				element={
-					token ? (
-						<DriverHomePage />
-					) : (
-						<Navigate to="/login" replace />
-					)
-				}
+				element={token ? <DriverHomePage /> : <Navigate to="/login" replace />}
 			/>
 			<Route
 				path="/home-passenger"
 				element={
-					token ? (
-						<PassengerHomePage />
-					) : (
-						<Navigate to="/login" replace />
-					)
+					token ? <PassengerHomePage /> : <Navigate to="/login" replace />
 				}
 			/>
 			<Route path="/route-chat-room" element={<SharedGlobalChat />} />
