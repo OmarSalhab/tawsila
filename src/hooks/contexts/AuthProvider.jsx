@@ -6,7 +6,7 @@ import {
 } from "../../services/authApi";
 import apiClient from "../../services/apiClient";
 import { AuthContext } from "./useAuth";
-// import { jwtDecode } from "jwt-decode";
+import { updateUser as updateUserApi } from "../../services/updateUser";
 const initialState = {
 	user: undefined,
 	token: undefined,
@@ -43,8 +43,19 @@ function authReducer(state, action) {
 				error: action.payload,
 			};
 		case "LOGOUT":
-			return initialState;
+			return {
+				user: null,
+				token: null,
+				loading: false,
+				isAuthenticated: false,
+				error: undefined,
+			};
 
+		case "UPDATE_USER":
+			return {
+				...state,
+				user: action.payload,
+			};
 		default:
 			return state;
 	}
@@ -77,6 +88,14 @@ const AuthProvider = ({ children }) => {
 		}
 	}, []);
 
+	const updateUser = useCallback(async (data, id) => {
+		try {
+			const response = await updateUserApi(data, id);
+			dispatch({ type: "UPDATE_USER", payload: response.user });
+		} catch (error) {
+			console.log(error);
+		}
+	}, []);
 	useEffect(() => {
 		const fetchAccessToken = async () => {
 			try {
@@ -134,6 +153,7 @@ const AuthProvider = ({ children }) => {
 						});
 						originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
 						originalRequest._retry = true;
+
 						return apiClient(originalRequest);
 					} catch {
 						dispatch({ type: "AUTH_FAILURE" });
@@ -149,7 +169,7 @@ const AuthProvider = ({ children }) => {
 	}, []);
 
 	return (
-		<AuthContext.Provider value={{ ...state, login, logout }}>
+		<AuthContext.Provider value={{ ...state, login, logout, updateUser }}>
 			{children}
 		</AuthContext.Provider>
 	);

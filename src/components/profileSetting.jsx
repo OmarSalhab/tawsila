@@ -3,8 +3,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useEffect, useState } from "react";
 import { getRouteIds } from "../services/routeApi";
-import { updateUser } from "../services/updateUser";
 import { useToast } from "../hooks/contexts/useToast";
+import useAuth from "../hooks/contexts/useAuth";
 
 const validationSchema = Yup.object().shape({
 	name: Yup.string()
@@ -32,6 +32,7 @@ const validationSchema = Yup.object().shape({
 const ProfileSetting = ({ user, onClose }) => {
 	const [routeOptions, setRouteOptions] = useState();
     const { addToast } = useToast();
+	const { updateUser } = useAuth();
 	const initialValues = {
 		name: user?.name || "",
 		phone: user?.phone || "",
@@ -79,9 +80,8 @@ const ProfileSetting = ({ user, onClose }) => {
 						validationSchema={validationSchema}
 						onSubmit={async (values, { setSubmitting }) => {
 							try {
-                                
-								const response = await updateUser(values,user._id);
-                                console.log(response);
+                                await updateUser(values,user._id);
+								onClose();
                                 addToast("User Updated Successfully", "success");
 							} catch (error) {
 								console.error("Update error:", error);
