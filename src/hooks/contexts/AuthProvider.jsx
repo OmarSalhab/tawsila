@@ -1,8 +1,7 @@
 import { useReducer, useCallback, useEffect, useLayoutEffect } from "react";
 import {
 	login as loginApi,
-	getUserInfo,
-	postRefresh,
+	refresh,
 	logout as logoutApi,
 } from "../../services/authApi";
 import apiClient from "../../services/apiClient";
@@ -45,12 +44,7 @@ function authReducer(state, action) {
 			};
 		case "LOGOUT":
 			return initialState;
-		case "SET_USER":
-			return {
-				...state,
-				user: action.payload,
-				isAuthenticated: true,
-			};
+
 		default:
 			return state;
 	}
@@ -83,11 +77,10 @@ const AuthProvider = ({ children }) => {
 		}
 	}, []);
 
-	//here i should check the token validity
 	useEffect(() => {
-		const checkToken = async () => {
+		const fetchAccessToken = async () => {
 			try {
-				const response = await postRefresh();
+				const response = await refresh();
 				dispatch({
 					type: "AUTH_SUCCESS",
 					payload: { user: response.user[0], token: response.accessToken },
@@ -96,11 +89,11 @@ const AuthProvider = ({ children }) => {
 				dispatch({ type: "AUTH_FAILURE", payload: error });
 			}
 		};
-		checkToken();
+		fetchAccessToken();
 	}, []);
 
 	// Request interceptor
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const authInterceptor = apiClient.interceptors.request.use((config) => {
 			const isPublicEndpoint = publicEndpoints.some((endpoint) =>
 				config.url.includes(endpoint)
@@ -122,23 +115,22 @@ const AuthProvider = ({ children }) => {
 	}, [state.token]);
 
 	// Response interceptor
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const refreshInterceptor = apiClient.interceptors.response.use(
 			(response) => response,
 			async (error) => {
 				const originalRequest = error.config;
-				console.log(error.response.status);
 
 				if (
-					error.response.status === 401 ||
-					error.response.data.message === "Unauthorized"
+					(error.response.status === 401 || error.response.status === 403) &&
+					error.response.data.message === "Not authorized"
 				) {
 					try {
-						const response = await postRefresh();
+						const response = await refresh();
 
 						dispatch({
 							type: "AUTH_SUCCESS",
-							payload: { token: response.accessToken, user: response.user },
+							payload: { user: response.user[0], token: response.accessToken },
 						});
 						originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
 						originalRequest._retry = true;

@@ -1,5 +1,23 @@
 import apiClient from "./apiClient";
 
+
+export const signupDriver = async (data) => {
+	try {
+		const response = await apiClient.post(
+			"/api/users/register/driver",
+			data,
+			{ withCredentials: true }
+		);
+		if (response.status === 201) return response.data;
+	} catch (error) {
+		throw {
+			message: error.response?.data?.message || "Signup failed",
+			status: error.response?.status,
+		};
+	}
+};
+
+
 export const signupPassenger = async (data) => {
 	try {
 		const response = await apiClient.post(
@@ -33,32 +51,14 @@ export const login = async (data) => {
 	}
 };
 
-export const getUserInfo = async () => {
+
+export const refresh = async () => {
 	try {
-		const response = await apiClient.get("/api/users/me", {
+		const response = await apiClient.get("/api/users/refresh", {
 			withCredentials: true,
 		});
-		return response.data;
-	} catch (error) {
-		throw error.response?.data || error;
-	}
-};
 
-export const postRefresh = async () => {
-	try {
-		const response = await fetch("http://localhost:9001/api/users/refresh", {
-			method: "GET",
-			credentials: "include",
-		});
-		console.log(response);
-		
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-		
-		const data = await response.json();
-		console.log(data);
-		  return data;
+		return response.data;
 	} catch (error) {
 		throw error.response?.data || error;
 	}

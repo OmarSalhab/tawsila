@@ -20,7 +20,8 @@ export default function Login() {
 			return;
 		}
 
-		if (error?.msg) {
+		if (error?.msg ) {
+			if(error?.msg === 'No refresh token') return 
 			addToast(error.msg, "error");
 		}
 		if (isAuthenticated) {

@@ -8,7 +8,6 @@ export default function Profile({ open, onClose }) {
 	const handleLogout = async () => {
 		await logout();
 	};
-	console.log("profile component: ",user);
 	
 	if (!open) return null;
 	return (
@@ -56,22 +55,22 @@ export default function Profile({ open, onClose }) {
 					</div>
 					<div className="bg-gray-50 rounded-lg p-4 w-full mt-4 mb-6">
 						<div className="flex justify-between text-sm mb-1">
-							<span className="text-gray-500">City</span>
-							<span className="font-medium text-gray-900">Amman</span>
+							<span className="text-gray-500">Route</span>
+							<span className="font-medium text-gray-900">{user?.routeId.roomName}</span>
 						</div>
 						<div className="flex justify-between text-sm mb-1">
 							<span className="text-gray-500">Member since</span>
-							<span className="font-medium text-gray-900">
-								{user?.createdAt}
+							<span className="font-normal text-red-600 ">
+								{formatDate(user?.createdAt)}
 							</span>
 						</div>
 						<div className="flex justify-between text-sm mb-1">
 							<span className="text-gray-500">Total rides</span>
-							<span className="font-medium text-gray-900">24</span>
+							<span className="font-medium text-gray-900">{user?.ratingsCount}</span>
 						</div>
 						<div className="flex justify-between text-sm">
 							<span className="text-gray-500">Role</span>
-							<span className="font-medium text-gray-900">{user?.role}</span>
+							<span className="font-medium text-gray-900">{user?.role.toUpperCase()}</span>
 						</div>
 					</div>
 					<div className="flex flex-col w-full gap-2 text-base">
@@ -84,7 +83,9 @@ export default function Profile({ open, onClose }) {
 						<button
 							type="button"
 							className="text-left py-2 px-2 rounded hover:bg-gray-100"
-							onClick={()=>{setIsProfileOpen(true)}}
+							onClick={() => {
+								setIsProfileOpen(true);
+							}}
 						>
 							Settings
 						</button>
@@ -111,6 +112,27 @@ export default function Profile({ open, onClose }) {
 	);
 }
 
-// Add this to your CSS for the slide-in animation:
-// @keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-// .animate-slideInLeft { animation: slideInLeft 0.3s ease; }
+function formatDate(dateString){
+	const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  const diffInDays = Math.floor(diffInHours / 24);
+  const diffInMonths = Math.floor(diffInDays / 30);
+  const diffInYears = Math.floor(diffInMonths / 12);
+
+  if (diffInYears > 0) {
+    return ` ${diffInYears} ${diffInYears === 1 ? 'year' : 'years'} ago`;
+  } else if (diffInMonths > 0) {
+    return ` ${diffInMonths} ${diffInMonths === 1 ? 'month' : 'months'} ago`;
+  } else if (diffInDays > 0) {
+    return ` ${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
+  } else if (diffInHours > 0) {
+    return ` ${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`;
+  } else if (diffInMinutes > 0) {
+    return ` ${diffInMinutes} ${diffInMinutes === 1 ? 'minute' : 'minutes'} ago`;
+  } else {
+    return 'Just joined';
+  }
+}

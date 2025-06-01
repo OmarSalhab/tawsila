@@ -2,27 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes slideInBottom { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-.animate-slideInBottom { animation: slideInBottom 0.6s ease; }
-
+.animate-slideInBottom {
+	animation: slideIn 0.6s ease;
+}
+.animate-slideInLeft {
+	animation: slideInLeft 0.3s ease;
+}
+@keyframes slideInBottom {
+	from {
+		transform: translateY(-100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
 @keyframes slideIn {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+	from {
+		transform: translateY(100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideInLeft {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(0);
+	}
 }
 
 @keyframes slideOut {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
+	from {
+		transform: translateX(0);
+		opacity: 1;
+	}
+	to {
+		transform: translateX(100%);
+		opacity: 0;
+	}
 }
