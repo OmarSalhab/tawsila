@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { User, MessageCircle } from "lucide-react";
 import Profile from "../../components/profile";
 import GlobalChat from "../shared/globalChat";
+import { useNavigate } from "react-router-dom";
 
 const staticTrips = [
 	{
@@ -60,7 +61,7 @@ const staticTrips = [
 export default function Home() {
 	const [trips, setTrips] = useState([]);
 	const [showProfile, setShowProfile] = useState(false);
-
+	const navigate = useNavigate();
 	useEffect(() => {
 		// Simulate fetching trips
 		setTrips(staticTrips); // Set to [] to test empty state
@@ -79,7 +80,7 @@ export default function Home() {
 					<h1 className="text-white text-xl font-bold text-center flex-1 -ml-6">
 						Available Rides
 					</h1>
-					<MessageCircle className="text-white w-6 h-6 z-10" />
+					<MessageCircle className="text-white w-6 h-6 z-10" onClick={()=> navigate("/route-chat-room")}/>
 				</div>
 				<div className="p-3">
 					{trips.length === 0 ? (

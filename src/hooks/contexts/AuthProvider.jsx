@@ -5,7 +5,7 @@ import {
 	logout as logoutApi,
 } from "../../services/authApi";
 import apiClient from "../../services/apiClient";
-import { AuthContext } from "./useAuth";
+import { AuthContext } from "../useAuth";
 import { updateUser as updateUserApi } from "../../services/updateUser";
 const initialState = {
 	user: undefined,
@@ -96,6 +96,11 @@ const AuthProvider = ({ children }) => {
 			console.log(error);
 		}
 	}, []);
+
+	const isAuthrized = useCallback(() => {
+		if (state.user?.role === "passenger") return "passenger";
+		if (state.user?.role === "driver") return "driver";
+	}, [state.user?.role]);
 	useEffect(() => {
 		const fetchAccessToken = async () => {
 			try {
@@ -169,7 +174,9 @@ const AuthProvider = ({ children }) => {
 	}, []);
 
 	return (
-		<AuthContext.Provider value={{ ...state, login, logout, updateUser }}>
+		<AuthContext.Provider
+			value={{ ...state, login, logout, updateUser, isAuthrized }}
+		>
 			{children}
 		</AuthContext.Provider>
 	);

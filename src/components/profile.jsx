@@ -1,5 +1,5 @@
 import { X, User } from "lucide-react";
-import useAuth from "../hooks/contexts/useAuth";
+import useAuth from "../hooks/useAuth";
 import ProfileSetting from "./profileSetting";
 import { useState } from "react";
 export default function Profile({ open, onClose }) {
@@ -27,7 +27,7 @@ export default function Profile({ open, onClose }) {
 					<span className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-2">
 						<User className="w-16 h-16 text-gray-400" />
 					</span>
-					<span className="absolute top-24 left-1/2 -translate-x-1/2 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold border border-blue-200">
+					<span className={`absolute top-[100px] left-1/2 -translate-x-1/2  ${user?.gender === "male" ? "text-blue-600 bg-blue-100":"text-pink-600 bg-pink-100"} text-sm px-2 py-0.5 rounded-full font-semibold border border-blue-200`}>
 						{user?.gender}
 					</span>
 					<div className="mt-6 text-center">
@@ -56,7 +56,7 @@ export default function Profile({ open, onClose }) {
 					<div className="bg-gray-50 rounded-lg p-4 w-full mt-4 mb-6">
 						<div className="flex justify-between text-sm mb-1">
 							<span className="text-gray-500">Route</span>
-							<span className="font-medium text-gray-900">{user?.routeId.roomName}</span>
+							<span className="font-medium text-gray-900">{user?.routeId?.roomName}</span>
 						</div>
 						<div className="flex justify-between text-sm mb-1">
 							<span className="text-gray-500">Member since</span>

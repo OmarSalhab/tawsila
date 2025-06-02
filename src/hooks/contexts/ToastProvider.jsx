@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { ToastContext } from "./useToast";
+import { ToastContext } from "../useToast";
 import { Info } from "lucide-react";
 
 export const ToastProvider = ({ children }) => {

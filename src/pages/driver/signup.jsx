@@ -5,12 +5,16 @@ import {
 	MapPin,
 	CreditCard,
 	UploadCloud,
+	Car,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { getRouteIds } from "../../services/routeApi";
+import { signupDriver } from "../../services/authApi";
+import { useToast } from "../../hooks/useToast";
 
 const validationSchema = Yup.object().shape({
 	name: Yup.string()
@@ -33,30 +37,80 @@ const validationSchema = Yup.object().shape({
 	gender: Yup.string()
 		.required("Gender is required")
 		.oneOf(["male", "female"], "Please select a valid gender"),
-	route: Yup.string().required("Route is required"),
-	idNumber: Yup.string()
+	carModel: Yup.string()
+		.required("Full car model name is required")
+		.min(10, "model must be at least 10 characters"),
+	nationalId: Yup.string()
 		.required("National ID is required")
 		.matches(/^[0-9]{10}$/, "National ID must be exactly 10 digits"),
-	idPhoto: Yup.string()
+	imageUrl: Yup.string()
 		.required("Image URL is required")
 		.matches(
-			/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/i,
+			/^blob:http:\/\/.+$/i,
 			"Please enter a valid image URL (jpg, jpeg, png)"
 		),
+	routeId: Yup.string().required("Route is required"),
 });
+
+const supaUpload = async (formData) => {
+	try {
+        const supabaseUrl = import.meta.env.VITE_SUPA_URL;
+        const supabaseKey = import.meta.env.VITE_SUPA_KEY;
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        const filePath = `users-nationalId/${formData?.fileName}`;
+
+        // First check if the file already exists
+        const { data: existingFile } = await supabase.storage
+            .from("tawsila")
+            .getPublicUrl(filePath);
+
+        if (existingFile?.publicUrl) {
+            // If file exists, return its URL
+            return existingFile.publicUrl;
+        }
+
+        // If file doesn't exist, proceed with upload
+        const { data, error } = await supabase.storage
+            .from("tawsila")
+            .upload(filePath, formData?.file);
+
+        if (error) {
+            // If error is due to duplicate file, try to get the existing file's URL
+            if (error.message.includes('duplicate')) {
+                const { data: urlData } = await supabase.storage
+                    .from("tawsila")
+                    .getPublicUrl(filePath);
+                return urlData.publicUrl;
+            }
+            throw error;
+        }
+
+        const { data: urlData } = await supabase.storage
+            .from("tawsila")
+            .getPublicUrl(data.path);
+
+        return urlData.publicUrl;
+    } catch (error) {
+        console.error("Error uploading to Supabase:", error);
+        throw error;
+    }
+};
 
 export default function Signup() {
 	const navigate = useNavigate();
-	const [routeOptions, setRouteOptions] = useState();
-	const [imageUrl, setImageUrl] = useState();
+	const [routeOptions, setRouteOptions] = useState(null);
+	const [formData, setFormData] = useState({ file: "", fileName: "" });
+	const { addToast } = useToast();
 	const initialValues = {
 		name: "",
 		phone: "",
 		password: "",
 		gender: "",
 		routeId: routeOptions?.[0]?._id || "",
-		idNumber: "",
-		idPhoto: "",
+		carModel: "",
+		nationalId: "",
+		imageUrl: "",
 	};
 
 	useEffect(() => {
@@ -77,6 +131,17 @@ export default function Signup() {
 		getRoutes();
 	}, []);
 
+	useEffect(() => {
+		return () => {
+			if (
+				initialValues.imageUrl &&
+				initialValues.imageUrl.startsWith("blob:")
+			) {
+				URL.revokeObjectURL(initialValues.imageUrl);
+			}
+		};
+	}, [initialValues.imageUrl]);
+
 	return (
 		<div className="min-h-screen flex flex-col items-center bg-gray-50">
 			<div className="w-full bg-primary py-8 flex justify-center">
@@ -94,17 +159,34 @@ export default function Signup() {
 					validationSchema={validationSchema}
 					onSubmit={async (values, { setSubmitting }) => {
 						try {
-							// Handle form submission here
-							console.log(values);
-							navigate("/login");
+							// First upload the image to Supabase
+							
+							const image = await supaUpload(formData);
+							if (!image) {
+								throw new Error("Failed to upload image");
+							}
+
+							// Prepare the data for signup
+							const signupData = {
+								...values,
+								imageUrl: image, // Add the uploaded image URL to the signup data
+							};
+
+							// Call the signup API
+							const response = await signupDriver(signupData);
+							if (response) {
+								// If signup is successful, navigate to login
+								navigate("/signup-success");
+							}
 						} catch (error) {
-							console.error("Signup error:", error);
+							addToast(error?.message, error);
 						} finally {
 							setSubmitting(false);
 						}
 					}}
+					enableReinitialize
 				>
-					{({ isSubmitting, errors, touched, values }) => (
+					{({ isSubmitting, errors, touched, values, setFieldValue }) => (
 						<Form className="space-y-4">
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-1">
@@ -288,16 +370,42 @@ export default function Signup() {
 									</span>
 									<Field
 										type="text"
-										name="idNumber"
+										name="nationalId"
 										placeholder="9XXXXXXXXX"
 										className={`pl-10 pr-3 py-2 w-full rounded-md border ${
-											errors.idNumber && touched.idNumber
+											errors.nationalId && touched.nationalId
 												? "border-red-500 focus:border-red-500 focus:ring-red-500"
 												: "border-gray-300 focus:ring-primary focus:border-primary"
 										} focus:outline-none focus:ring-0.7 text-gray-700 bg-white`}
 									/>
 									<ErrorMessage
-										name="idNumber"
+										name="nationalId"
+										component="div"
+										className="text-red-500 text-sm mt-1 bg-gray-50"
+									/>
+								</div>
+							</div>
+
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Car Model
+								</label>
+								<div className="relative h-[42px]">
+									<span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+										<Car className="w-5 h-5" />
+									</span>
+									<Field
+										type="text"
+										name="carModel"
+										placeholder="Kia Niro 2020"
+										className={`pl-10 pr-3 py-2 w-full rounded-md border ${
+											errors.carModel && touched.carModel
+												? "border-red-500 focus:border-red-500 focus:ring-red-500"
+												: "border-gray-300 focus:ring-primary focus:border-primary"
+										} focus:outline-none focus:ring-0.7 text-gray-700 bg-white`}
+									/>
+									<ErrorMessage
+										name="carModel"
 										component="div"
 										className="text-red-500 text-sm mt-1 bg-gray-50"
 									/>
@@ -309,65 +417,47 @@ export default function Signup() {
 									Upload ID Photo
 								</label>
 								<div className="border-2 border-dashed border-gray-300 rounded-md p-4 flex flex-col items-center justify-center text-center bg-white">
-									{imageUrl ? (
-										<>
-											<img src={imageUrl} className="w-full h-60" />
-											<label className="inline-block mt-3 cursor-pointer">
-												<span className="bg-white text-black px-4 py-2 border border-gray-300 rounded-md font-medium">
-													Select File
-												</span>
-												<Field
-													type="file"
-													name="idPhoto"
-													className="hidden"
-													onChange={(event) => {
-														const file = event.currentTarget.files[0];
-														if (file) {
-															// Create a URL for the file
-															const fileUrl = URL.createObjectURL(file);
-															setImageUrl(fileUrl);
-                                                  
-															// Update the form value with the URL
-															event.target.value = fileUrl;
-														}
-													}}
-												/>
-											</label>
-										</>
+									{values.imageUrl ? (
+										<img src={values.imageUrl} className="w-full h-60" />
 									) : (
 										<>
 											<UploadCloud className="w-10 h-10 text-gray-400 mb-2" />
 											<p className="text-gray-500 text-sm mb-2">
 												Drag and drop your ID photo here or click to browse
 											</p>
-											<label className="inline-block cursor-pointer">
-												<span className="bg-white text-black px-4 py-2 border border-gray-300 rounded-md font-medium">
-													Select File
-												</span>
-												<Field
-													type="file"
-													name="idPhoto"
-													className="hidden"
-													onChange={(event) => {
-														const file = event.currentTarget.files[0];
-														if (file) {
-															// Create a URL for the file
-															const fileUrl = URL.createObjectURL(file);
-															setImageUrl(fileUrl);
-
-															// Update the form value with the URL
-															event.target.value = fileUrl;
-														}
-													}}
-												/>
-											</label>
-											<ErrorMessage
-												name="idPhoto"
-												component="div"
-												className="text-red-500 text-sm mt-1 "
-											/>
 										</>
 									)}
+									<label className="inline-block mt-3 cursor-pointer">
+										<span className="bg-white text-black px-4 py-2 border border-gray-300 rounded-md font-medium">
+											Select File
+										</span>
+										<Field
+											type="file"
+											name="imageUrl"
+											accept="image/*"
+											className="hidden"
+											onChange={(event) => {
+												const file = event.currentTarget.files[0];
+												if (file) {
+													// Create a URL for the file
+													const fileUrl = URL.createObjectURL(file);
+
+													setFieldValue("imageUrl", fileUrl);
+
+													const fileExt = file.name.split(".").pop();
+													const fileName = `${Date.now()}.${fileExt}`;
+
+													setFormData({ file: file, fileName: fileName });
+												}
+											}}
+											value={undefined}
+										/>
+										<ErrorMessage
+											name="imageUrl"
+											component="div"
+											className="text-red-500 text-sm mt-1 "
+										/>
+									</label>
 								</div>
 							</div>
 

@@ -1,11 +1,11 @@
 import { Lock, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import useAuth from "../../hooks/contexts/useAuth";
+import useAuth from "../../hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
-import { useToast } from "../../hooks/contexts/useToast";
+import { useToast } from "../../hooks/useToast";
 export default function Login() {
 	const navigate = useNavigate();
-	const { login, loading, error, isAuthenticated } = useAuth();
+	const { login, loading, error, isAuthenticated,user } = useAuth();
 	const [loginForm, setLoginForm] = useState({
 		phone: "",
 		password: "",
@@ -25,9 +25,9 @@ export default function Login() {
 			addToast(error.msg, "error");
 		}
 		if (isAuthenticated) {
-			navigate("/home-passenger");
+			navigate(`/home-${user?.role}`);
 		}
-	}, [error, addToast, navigate, isAuthenticated]);
+	}, [error, addToast, navigate, isAuthenticated,user?.role]);
 
 	async function handleLoginSubmit(e) {
 		e.preventDefault();

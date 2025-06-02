@@ -3,8 +3,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useEffect, useState } from "react";
 import { getRouteIds } from "../services/routeApi";
-import { useToast } from "../hooks/contexts/useToast";
-import useAuth from "../hooks/contexts/useAuth";
+import { useToast } from "../hooks/useToast";
+import useAuth from "../hooks/useAuth";
 
 const validationSchema = Yup.object().shape({
 	name: Yup.string()
@@ -38,7 +38,7 @@ const ProfileSetting = ({ user, onClose }) => {
 		phone: user?.phone || "",
 		password: "",
 		gender: user?.gender || "",
-		routeId: user?.routeId._id || "",
+		routeId: user?.routeId?._id || "",
 	};
 
 	useEffect(() => {
@@ -63,7 +63,7 @@ const ProfileSetting = ({ user, onClose }) => {
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 ">
 			<div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-h-[90vh] sm:max-h-[85vh] overflow-y-auto animate-slideInBottom">
 				{/* Header */}
-				<div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
+				<div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center z-10">
 					<h2 className="text-xl font-bold text-gray-900">Profile Settings</h2>
 					<button
 						onClick={onClose}

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const SignupSuccess = () => {
 	const [showAnimation, setShowAnimation] = useState(false);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		// Trigger animation after component mounts
@@ -13,7 +15,6 @@ const SignupSuccess = () => {
 		return () => clearTimeout(timer);
 	}, []);
 
-	const handleBackToLogin = () => {};
 
 	return (
 		<div className="min-h-screen bg-primary flex flex-col items-center justify-center px-4">
@@ -63,7 +64,7 @@ const SignupSuccess = () => {
 					}`}
 				>
 					<button
-						onClick={handleBackToLogin}
+						onClick={()=>{navigate("/login")}}
 						className="bg-white text-primary px-8 py-3 text-lg font-semibold rounded-md "
 					>
 						Back to Login

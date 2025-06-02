@@ -3,6 +3,8 @@ import { User, MessageCircle } from "lucide-react";
 import DriverAllRides from "../../components/driverAllRides";
 import DriverMyRides from "../../components/driverMyRides";
 import CreateRide from "../../components/createRide";
+import { useNavigate } from "react-router-dom";
+import Profile from "../../components/profile";
 
 const staticRides = [
   {
@@ -61,15 +63,17 @@ const staticRides = [
 export default function DriverHome() {
   const [tab, setTab] = useState("myRides");
   const [rides] = useState(staticRides);
+  const [showProfile, setShowProfile] = useState(false);
+  const navigate = useNavigate();
   const myRides = [];
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
       <div className="w-full bg-primary py-4 flex items-center justify-between px-4">
-        <User className="text-white w-6 h-6" />
+        <User className="text-white w-6 h-6 z-10" onClick={() => setShowProfile(true)}/>
         <h1 className="text-white text-xl font-bold text-center flex-1 -ml-6">Available Rides</h1>
-        <MessageCircle className="text-white w-6 h-6" />
+        <MessageCircle className="text-white w-6 h-6 z-10" onClick={()=> navigate("/route-chat-room")}/>
       </div>
       {/* Tabs */}
       <div className="flex w-full max-w-md mx-auto mt-4 rounded-lg overflow-hidden bg-gray-100">
@@ -90,6 +94,7 @@ export default function DriverHome() {
         {tab === "myRides" ? <DriverMyRides rides={myRides} /> : <DriverAllRides rides={rides} />}
       </div>
       <CreateRide onClick={handleCreateRide} />
+      <Profile open={showProfile} onClose={() => setShowProfile(false)} />
     </div>
   );
 }

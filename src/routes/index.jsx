@@ -11,49 +11,102 @@ import SharedRolePage from "../containers/SharedRolePage";
 import NotFoundPage from "../containers/NotFoundPage";
 import { ToastProvider } from "../hooks/contexts/ToastProvider";
 import AuthProvider from "../hooks/contexts/AuthProvider";
-import useAuth from "../hooks/contexts/useAuth";
+import useAuth from "../hooks/useAuth";
 import LoadingSkeleton from "../components/loadingSkeleton";
 
 const RouteComponents = () => {
 	return (
 		<BrowserRouter>
-			<AuthProvider>
-				<ToastProvider>
+			<ToastProvider>
+				<AuthProvider>
 					<AppRoutes />
-				</ToastProvider>
-			</AuthProvider>
+				</AuthProvider>
+			</ToastProvider>
 		</BrowserRouter>
 	);
 };
 
 const AppRoutes = () => {
-	const { token } = useAuth();
+	const { token, isAuthrized } = useAuth();
 	if (token === undefined) return <LoadingSkeleton />;
+
 	return (
 		<Routes>
 			<Route
 				path="/"
 				element={
-					token ? <PassengerHomePage /> : <Navigate to="/login" replace />
+					token ? (
+						isAuthrized() === "passenger" ? (
+							<PassengerHomePage />
+						) : (
+							<DriverHomePage />
+						)
+					) : (
+						<Navigate to="/login" replace />
+					)
 				}
 			/>
 			<Route path="/login" element={<SharedLoginPage />} />
-			<Route path="/role" element={<SharedRolePage />} />
-			<Route path="/signup-driver" element={<DriverSignupPage />} />
-			<Route path="/signup-success" element={<DriverSignupSuccessPage />} />
-			<Route path="/signup-passenger" element={<PassengerSignupPage />} />
+			<Route
+				path="/role"
+				element={token ? <Navigate to={"/"} replace /> : <SharedRolePage />}
+			/>
+			<Route
+				path="/signup-driver"
+				element={token ? <Navigate to={"/"} replace /> : <DriverSignupPage />}
+			/>
+			<Route
+				path="/signup-success"
+				element={
+					token ? <Navigate to={"/"} replace /> : <DriverSignupSuccessPage />
+				}
+			/>
+			<Route
+				path="/signup-passenger"
+				element={
+					token ? <Navigate to={"/"} replace /> : <PassengerSignupPage />
+				}
+			/>
 			<Route
 				path="/home-driver"
-				element={token ? <DriverHomePage /> : <Navigate to="/login" replace />}
+				element={
+					token ? (
+						isAuthrized() === "driver" ? (
+							<DriverHomePage />
+						) : (
+							<Navigate to="/" replace />
+						)
+					) : (
+						<Navigate to="/login" replace />
+					)
+				}
 			/>
 			<Route
 				path="/home-passenger"
 				element={
-					token ? <PassengerHomePage /> : <Navigate to="/login" replace />
+					token ? (
+						isAuthrized() === "passenger" ? (
+							<PassengerHomePage />
+						) : (
+							<Navigate to="/" replace />
+						)
+					) : (
+						<Navigate to="/login" replace />
+					)
 				}
 			/>
-			<Route path="/route-chat-room" element={<SharedGlobalChat />} />
-			<Route path="/ride-room-passenger" element={<PassengerRidePage />} />
+			<Route
+				path="/route-chat-room"
+				element={
+					token ? <SharedGlobalChat /> : <Navigate to="/login" replace />
+				}
+			/>
+			<Route
+				path="/ride-room-passenger"
+				element={
+					token ? <PassengerRidePage /> : <Navigate to="/login" replace />
+				}
+			/>
 			<Route path="*" element={<NotFoundPage />} />
 		</Routes>
 	);
