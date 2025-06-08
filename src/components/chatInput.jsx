@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const ChatInput = ({ setIsTyping, handleSubmit }) => {
+const ChatInput = ({ setIsTyping, handleSubmit, children }) => {
 	const textareaRef = useRef(null);
 	const [inputValue, setInputValue] = useState("");
 
@@ -19,8 +19,10 @@ const ChatInput = ({ setIsTyping, handleSubmit }) => {
 	}, [inputValue]);
 
 	return (
+
 		<div className="p-3 border-t flex items-center bg-white">
-			<textarea
+            {children}
+        	<textarea
 				ref={textareaRef}
 				placeholder="Type a message..."
 				className="flex-1 border rounded-lg px-3 py-2 mr-2 focus:outline-none focus:ring-2 focus:ring-primary  resize-none overflow-y-auto min-h-[40px] max-h-[120px]"

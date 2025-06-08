@@ -1,11 +1,12 @@
-import { Lock, Phone } from "lucide-react";
+import { EyeClosed, EyeIcon, Lock, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "../../hooks/useToast";
 export default function Login() {
 	const navigate = useNavigate();
-	const { login, loading, error, isAuthenticated,user } = useAuth();
+	const { login, loading, error, isAuthenticated, user } = useAuth();
+	const [showPassword, setShowPassword] = useState(false);
 	const [loginForm, setLoginForm] = useState({
 		phone: "",
 		password: "",
@@ -20,14 +21,14 @@ export default function Login() {
 			return;
 		}
 
-		if (error?.msg ) {
-			if(error?.msg === 'No refresh token') return 
+		if (error?.msg) {
+			if (error?.msg === "No refresh token") return;
 			addToast(error.msg, "error");
 		}
 		if (isAuthenticated) {
 			navigate(`/home-${user?.role}`);
 		}
-	}, [error, addToast, navigate, isAuthenticated,user?.role]);
+	}, [error, addToast, navigate, isAuthenticated, user?.role]);
 
 	async function handleLoginSubmit(e) {
 		e.preventDefault();
@@ -77,12 +78,22 @@ export default function Login() {
 								<Lock className="w-5 h-5" />
 							</span>
 							<input
-								type="password"
+								type={showPassword ? "text" : "password"}
 								name="password"
 								placeholder="••••••••"
 								className="pl-10 pr-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-0.7 focus:ring-primary focus:border-primary text-gray-700 bg-white"
 								onChange={handlePasswordChange}
 							/>
+							<span
+								className="absolute inset-y-0 right-3 flex items-center pl-3 text-gray-500"
+								onClick={()=> setShowPassword(!showPassword)}
+							>
+								{showPassword ? (
+									<EyeIcon className="w-5 h-5" />
+								) : (
+									<EyeClosed className="w-5 h-5" />
+								)}
+							</span>
 						</div>
 					</div>
 					<div className="flex justify-end">

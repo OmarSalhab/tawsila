@@ -6,6 +6,8 @@ import {
 	CreditCard,
 	UploadCloud,
 	Car,
+	EyeIcon,
+	EyeClosed,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -54,47 +56,47 @@ const validationSchema = Yup.object().shape({
 
 const supaUpload = async (formData) => {
 	try {
-        const supabaseUrl = import.meta.env.VITE_SUPA_URL;
-        const supabaseKey = import.meta.env.VITE_SUPA_KEY;
+		const supabaseUrl = import.meta.env.VITE_SUPA_URL;
+		const supabaseKey = import.meta.env.VITE_SUPA_KEY;
 
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        const filePath = `users-nationalId/${formData?.fileName}`;
+		const supabase = createClient(supabaseUrl, supabaseKey);
+		const filePath = `users-nationalId/${formData?.fileName}`;
 
-        // First check if the file already exists
-        const { data: existingFile } = await supabase.storage
-            .from("tawsila")
-            .getPublicUrl(filePath);
+		// First check if the file already exists
+		const { data: existingFile } = await supabase.storage
+			.from("tawsila")
+			.getPublicUrl(filePath);
 
-        if (existingFile?.publicUrl) {
-            // If file exists, return its URL
-            return existingFile.publicUrl;
-        }
+		if (existingFile?.publicUrl) {
+			// If file exists, return its URL
+			return existingFile.publicUrl;
+		}
 
-        // If file doesn't exist, proceed with upload
-        const { data, error } = await supabase.storage
-            .from("tawsila")
-            .upload(filePath, formData?.file);
+		// If file doesn't exist, proceed with upload
+		const { data, error } = await supabase.storage
+			.from("tawsila")
+			.upload(filePath, formData?.file);
 
-        if (error) {
-            // If error is due to duplicate file, try to get the existing file's URL
-            if (error.message.includes('duplicate')) {
-                const { data: urlData } = await supabase.storage
-                    .from("tawsila")
-                    .getPublicUrl(filePath);
-                return urlData.publicUrl;
-            }
-            throw error;
-        }
+		if (error) {
+			// If error is due to duplicate file, try to get the existing file's URL
+			if (error.message.includes("duplicate")) {
+				const { data: urlData } = await supabase.storage
+					.from("tawsila")
+					.getPublicUrl(filePath);
+				return urlData.publicUrl;
+			}
+			throw error;
+		}
 
-        const { data: urlData } = await supabase.storage
-            .from("tawsila")
-            .getPublicUrl(data.path);
+		const { data: urlData } = await supabase.storage
+			.from("tawsila")
+			.getPublicUrl(data.path);
 
-        return urlData.publicUrl;
-    } catch (error) {
-        console.error("Error uploading to Supabase:", error);
-        throw error;
-    }
+		return urlData.publicUrl;
+	} catch (error) {
+		console.error("Error uploading to Supabase:", error);
+		throw error;
+	}
 };
 
 export default function Signup() {
@@ -102,6 +104,7 @@ export default function Signup() {
 	const [routeOptions, setRouteOptions] = useState(null);
 	const [formData, setFormData] = useState({ file: "", fileName: "" });
 	const { addToast } = useToast();
+	const [showPassword, setShowPassword] = useState(false);
 	const initialValues = {
 		name: "",
 		phone: "",
@@ -160,7 +163,7 @@ export default function Signup() {
 					onSubmit={async (values, { setSubmitting }) => {
 						try {
 							// First upload the image to Supabase
-							
+
 							const image = await supaUpload(formData);
 							if (!image) {
 								throw new Error("Failed to upload image");
@@ -249,7 +252,7 @@ export default function Signup() {
 										<Lock className="w-5 h-5" />
 									</span>
 									<Field
-										type="password"
+										type={showPassword ? "text" : "password"}
 										name="password"
 										placeholder="••••••••"
 										className={`pl-10 pr-3 py-2 w-full rounded-md border ${
@@ -258,6 +261,16 @@ export default function Signup() {
 												: "border-gray-300 focus:ring-primary focus:border-primary"
 										} focus:outline-none focus:ring-0.7 text-gray-700 bg-white`}
 									/>
+									<span
+										className={`absolute inset-y-0 right-3 flex items-center pl-3 text-gray-500`}
+										onClick={() => setShowPassword(!showPassword)}
+									>
+										{showPassword ? (
+											<EyeIcon className="w-5 h-5" />
+										) : (
+											<EyeClosed className="w-5 h-5" />
+										)}
+									</span>
 									<ErrorMessage
 										name="password"
 										component="div"
@@ -329,7 +342,7 @@ export default function Signup() {
 								<label className="block text-sm font-medium text-gray-700 mb-1">
 									Preferred Route
 								</label>
-								<div className="relative">
+								<div className="relative  h-[42px]">
 									<span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
 										<MapPin className="w-5 h-5" />
 									</span>

@@ -2,46 +2,84 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import ChatInput from "../../components/chatInput";
-import { useState } from "react";
-
-const messages = [
-	{
-		id: 1,
-		user: "Ahmad (Driver)",
-		text: "I'll be starting from Mecca Mall exactly at 15:30.",
-		time: "14:15",
-		type: "driver",
-	},
-	{
-		id: 2,
-		user: "Sara",
-		text: "Is there enough space for a small luggage?",
-		time: "14:20",
-		type: "passenger",
-	},
-	{
-		id: 3,
-		user: "Ahmad (Driver)",
-		text: "Yes, there's room in the trunk for small bags.",
-		time: "14:22",
-		type: "driver",
-	},
-	{
-		id: 4,
-		user: "You",
-		text: "Can we make a quick stop at Zarqa Mall?",
-		time: "14:30",
-		type: "me",
-	},
-];
-
+import { useEffect, useRef, useState } from "react";
+import useSocket from "../../hooks/useSocket";
+import { getChat, getMemebers } from "../../services/getChat";
 export default function GlobalChat() {
-	const { user } = useAuth();
 	const [isTyping, setIsTyping] = useState(false);
+	const [messages, setMessages] = useState([]);
+	const messagesEndRef = useRef(null); // Add this ref
+	const { user } = useAuth();
+	const { socket, activeMemebersCount } = useSocket();
+	const [members, setMembers] = useState(0);
 
 	const handleSubmit = (inputValue) => {
-		console.log(inputValue);
+		if (!inputValue.trim()) return;
+		// Emit the message to the server
+		socket?.emit("send_message", {
+			content: inputValue,
+			userName: user?.name,
+			senderId: user?._id,
+			routeId: user?.routeId?._id,
+			createdAt: Date.now(),
+		});
 	};
+	useEffect(() => {
+		const fetchMemebers = async () => {
+			try {
+				const count = await getMemebers();
+				setMembers(count);
+			} catch (error) {
+				console.error(error);
+			}
+		};
+		fetchMemebers();
+	}, [user?.routeId]);
+
+	useEffect(() => {
+		if (socket) {
+			const handleMessage = (message) => {
+				const newMessage = {
+					id: message.msgId,
+					userId: message.userId,
+					user: message.userName,
+					text: message.content,
+					time: new Date().toLocaleTimeString([], {
+						month: "2-digit",
+						day: "2-digit",
+						hour: "2-digit",
+						minute: "2-digit",
+					}),
+					type: message.role,
+				};
+				setMessages((prev) => [...prev, newMessage]);
+			};
+			socket.on("receive_message", handleMessage);
+			return () => {
+				socket.off("receive_message", handleMessage);
+			};
+		}
+	}, [socket]);
+
+	const scrollToBottom = () => {
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	};
+
+	useEffect(() => {
+		try {
+			const fetchMessages = async () => {
+				const messagesList = await getChat();
+				setMessages(messagesList);
+			};
+			fetchMessages();
+		} catch (error) {
+			console.error(error);
+		}
+	}, [user?.routeId]);
+
+	useEffect(() => {
+		scrollToBottom();
+	}, [messages]);
 	return (
 		<div className="h-screen bg-gray-50 ">
 			{/* Header */}
@@ -59,9 +97,20 @@ export default function GlobalChat() {
 						Route-specific ride sharing group
 					</span>
 				</div>
-        <div className="text-white text-[10px]">
-        <span className="text-secondary font-semibold text-sm">178</span> Memebers 
-        </div>
+				<div className="flex flex-col justify-center">
+					<div className="text-white text-[10px]">
+						<span className="text-secondary font-semibold text-sm">
+							{members}
+						</span>{" "}
+						Members
+					</div>
+					<div className="text-white text-[10px]">
+						<span className="text-secondary font-semibold text-sm">
+							{activeMemebersCount}
+						</span>{" "}
+						Active
+					</div>
+				</div>
 			</div>
 			{/* Chat Body */}
 			<div
@@ -73,41 +122,44 @@ export default function GlobalChat() {
 				>
 					{messages ? (
 						messages.length > 0 ? (
-							messages.map((msg) => (
-								<div
-									key={msg.id}
-									className={
-										msg.type === "me"
-											? "flex justify-end"
-											: "flex justify-start"
-									}
-								>
+							<>
+								{messages.map((msg) => (
 									<div
+										key={msg.id}
 										className={
-											msg.type === "driver"
-												? "bg-yellow-100 border border-yellow-200 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
-												: msg.type === "me"
-												? "bg-primary text-white max-w-xs p-3 rounded-lg shadow-sm"
-												: "bg-gray-100 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
+											msg.userId === user._id
+												? "flex justify-end"
+												: "flex justify-start"
 										}
 									>
-										<div className="flex items-center mb-1">
-											<span className="font-medium text-sm">
-												{msg.user}
-												{msg.type === "driver" && (
-													<span className="text-xs text-yellow-600 ml-1">
-														(Driver)
-													</span>
-												)}
-											</span>
-										</div>
-										<div className="text-sm mb-1">{msg.text}</div>
-										<div className="text-xs text-right text-gray-400">
-											{msg.time}
+										<div
+											className={
+												msg.type === "driver"
+													? "bg-yellow-100 border border-yellow-200 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
+													: msg.userId === user._id
+													? "bg-primary text-white max-w-xs p-3 rounded-lg shadow-sm"
+													: "bg-gray-100 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
+											}
+										>
+											<div className="flex items-center mb-1">
+												<span className="font-medium text-sm">
+													{msg.user}
+													{msg.type === "driver" && (
+														<span className="text-xs text-yellow-600 ml-1">
+															(Driver)
+														</span>
+													)}
+												</span>
+											</div>
+											<div className="text-sm mb-1">{msg.text}</div>
+											<div className="text-xs text-right text-gray-400">
+												{msg.time}
+											</div>
 										</div>
 									</div>
-								</div>
-							))
+								))}
+								<div ref={messagesEndRef} />
+							</>
 						) : (
 							<p className="text-gray-400 text-lg text-center">
 								No messages yet. Be the first to say hello!

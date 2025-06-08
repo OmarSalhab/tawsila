@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ChatInput from "./chatInput";
+import { MapPin } from "lucide-react";
 
 const messages = [
 	{
@@ -49,53 +50,54 @@ export default function RideChat() {
 				onClick={() => setIsTyping(false)}
 			>
 				{messages ? (
-						messages.length > 0 ? (
-							messages.map((msg) => (
+					messages.length > 0 ? (
+						messages.map((msg) => (
+							<div
+								key={msg.id}
+								className={
+									msg.type === "me" ? "flex justify-end" : "flex justify-start"
+								}
+							>
 								<div
-									key={msg.id}
 									className={
-										msg.type === "me"
-											? "flex justify-end"
-											: "flex justify-start"
+										msg.type === "driver"
+											? "bg-yellow-100 border border-yellow-200 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
+											: msg.type === "me"
+											? "bg-primary text-white max-w-xs p-3 rounded-lg shadow-sm"
+											: "bg-gray-100 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
 									}
 								>
-									<div
-										className={
-											msg.type === "driver"
-												? "bg-yellow-100 border border-yellow-200 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
-												: msg.type === "me"
-												? "bg-primary text-white max-w-xs p-3 rounded-lg shadow-sm"
-												: "bg-gray-100 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
-										}
-									>
-										<div className="flex items-center mb-1">
-											<span className="font-medium text-sm">
-												{msg.user}
-												{msg.type === "driver" && (
-													<span className="text-xs text-yellow-600 ml-1">
-														(Driver)
-													</span>
-												)}
-											</span>
-										</div>
-										<div className="text-sm mb-1">{msg.text}</div>
-										<div className="text-xs text-right text-gray-400">
-											{msg.time}
-										</div>
+									<div className="flex items-center mb-1">
+										<span className="font-medium text-sm">
+											{msg.user}
+											{msg.type === "driver" && (
+												<span className="text-xs text-yellow-600 ml-1">
+													(Driver)
+												</span>
+											)}
+										</span>
+									</div>
+									<div className="text-sm mb-1">{msg.text}</div>
+									<div className="text-xs text-right text-gray-400">
+										{msg.time}
 									</div>
 								</div>
-							))
-						) : (
-							<p className="text-gray-400 text-lg text-center">
-								No messages yet. Be the first to say hello!
-							</p>
-						)
+							</div>
+						))
 					) : (
-						<div className="flex justify-center mt-5 text-xl">loading...</div>
-					)}
+						<p className="text-gray-400 text-lg text-center">
+							No messages yet. Be the first to say hello!
+						</p>
+					)
+				) : (
+					<div className="flex justify-center mt-5 text-xl">loading...</div>
+				)}
 			</div>
 			{/* Message input */}
-			<ChatInput setIsTyping={setIsTyping} handleSubmit={handleSubmit} />
+
+			<ChatInput setIsTyping={setIsTyping} handleSubmit={handleSubmit} >
+				<div className="m-2 cursor-pointer"><MapPin className="w-6 h-6 text-gray-500"/></div>
+			</ChatInput>
 		</div>
 	);
 }

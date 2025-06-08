@@ -1,4 +1,4 @@
-import { Lock, Phone, User, MapPin } from "lucide-react";
+import { Lock, Phone, User, MapPin, EyeClosed, EyeIcon } from "lucide-react";
 import { signupPassenger } from "../../services/authApi";
 import { getRouteIds } from "../../services/routeApi";
 import { useEffect, useState } from "react";
@@ -35,7 +35,7 @@ export default function Signup() {
 	const [routeOptions, setRouteOptions] = useState(null);
 	const navigate = useNavigate();
 	const { addToast } = useToast();
-
+	const [showPassword, setShowPassword] = useState(false);
 	useEffect(() => {
 		const getRoutes = async () => {
 			try {
@@ -86,6 +86,7 @@ export default function Signup() {
 							}
 						} catch (error) {
 							console.error("Signup error:", error);
+							addToast(error.message, "error");
 						} finally {
 							setSubmitting(false);
 						}
@@ -157,7 +158,7 @@ export default function Signup() {
 										<Lock className="w-5 h-5" />
 									</span>
 									<Field
-										type="password"
+										type={showPassword ? "text" : "password"}
 										name="password"
 										placeholder="••••••••"
 										className={`pl-10 pr-3 py-2 w-full rounded-md border ${
@@ -166,6 +167,13 @@ export default function Signup() {
 												: "border-gray-300 focus:ring-primary focus:border-primary"
 										} focus:outline-none focus:ring-0.7 text-gray-700 bg-white`}
 									/>
+									<span className={`absolute inset-y-0 right-3 flex items-center pl-3 text-gray-500`} onClick={()=> setShowPassword(!showPassword)}>
+										{showPassword ? (
+											<EyeIcon className="w-5 h-5" />
+										) : (
+											<EyeClosed className="w-5 h-5" />
+										)}
+									</span>
 									<ErrorMessage
 										name="password"
 										component="div"
@@ -237,7 +245,7 @@ export default function Signup() {
 								<label className="block text-sm font-medium text-gray-700 mb-1">
 									Preferred Route
 								</label>
-								<div className="relative">
+								<div className="relative  h-[42px]">
 									<span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
 										<MapPin className="w-5 h-5" />
 									</span>

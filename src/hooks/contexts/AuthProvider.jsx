@@ -68,7 +68,6 @@ const AuthProvider = ({ children }) => {
 		try {
 			dispatch({ type: "AUTH_START" });
 			const response = await loginApi(data);
-			console.log(response);
 
 			dispatch({
 				type: "AUTH_SUCCESS",

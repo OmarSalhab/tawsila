@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import DriverHomePage from "../containers/DriverHomePage";
 import DriverSignupPage from "../containers/DriverSignupPage";
 import DriverSignupSuccessPage from "../containers/DriverSignupSuccessPage";
+import DriverRidePage from "../containers/DriverRidePage";
 import PassengerHomePage from "../containers/PassengerHomePage";
 import PassengerRidePage from "../containers/PassengerRidePage";
 import PassengerSignupPage from "../containers/PassengerSignupPage";
@@ -13,13 +14,15 @@ import { ToastProvider } from "../hooks/contexts/ToastProvider";
 import AuthProvider from "../hooks/contexts/AuthProvider";
 import useAuth from "../hooks/useAuth";
 import LoadingSkeleton from "../components/loadingSkeleton";
-
+import SocketProvider from "../hooks/contexts/SocketProvider";
 const RouteComponents = () => {
 	return (
 		<BrowserRouter>
 			<ToastProvider>
 				<AuthProvider>
-					<AppRoutes />
+					<SocketProvider>
+						<AppRoutes />
+					</SocketProvider>
 				</AuthProvider>
 			</ToastProvider>
 		</BrowserRouter>
@@ -102,9 +105,31 @@ const AppRoutes = () => {
 				}
 			/>
 			<Route
+				path="/ride-room-driver"
+				element={
+					token ? (
+						isAuthrized() === "driver" ? (
+							<DriverRidePage />
+						) : (
+							<Navigate to="/" />
+						)
+					) : (
+						<Navigate to="/login" replace />
+					)
+				}
+			/>
+			<Route
 				path="/ride-room-passenger"
 				element={
-					token ? <PassengerRidePage /> : <Navigate to="/login" replace />
+					token ? (
+						isAuthrized() === "passenger" ? (
+							<PassengerRidePage />
+						) : (
+							<Navigate to="/" />
+						)
+					) : (
+						<Navigate to="/login" replace />
+					)
 				}
 			/>
 			<Route path="*" element={<NotFoundPage />} />

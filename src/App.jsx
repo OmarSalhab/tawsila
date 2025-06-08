@@ -1,13 +1,8 @@
 import "./App.css";
 import RouteComponents from "./routes";
 
-
 function App() {
-	return (
-		
-			<RouteComponents />
-		
-	);
+	return <RouteComponents />;
 }
 
 export default App;
