@@ -10,6 +10,7 @@ export default function CreateRide({ onClick }) {
 	const [price, setPrice] = useState("2.5JD");
 	const { addToast } = useToast();
 	const [description, setDescription] = useState("");
+	
 	// Get today's and tomorrow's dates in a nice format
 	const today = new Date();
 	const tomorrow = new Date(today);
@@ -39,7 +40,7 @@ export default function CreateRide({ onClick }) {
 		const now = new Date();
 		if (combinedDateTime < now) {
 			addToast("Cannot select a time in the past", "info");
-      return false;
+			return false;
 		}
 
 		return combinedDateTime;
@@ -47,27 +48,28 @@ export default function CreateRide({ onClick }) {
 
 	const handleSubmit = async () => {
 		const departureTime = combineDateAndTime(selectedDate, time);
-    if(!departureTime) return;
-    const newPrice =parseFloat(price.split('JD')[0].trim());
+		if (!departureTime) return;
+		const newPrice = parseFloat(price.split("JD")[0].trim());
 		const newForm = {
 			departureTime: departureTime,
-			price:newPrice,
+			price: newPrice,
 			description: description,
 			availableSeats: seats,
 		};
 		try {
 			const response = await createRide(newForm);
-      console.log(response);
-      
+			console.log(response);
+
 			addToast("created the ride successfully", "success");
-      setTime('');
-      setDescription('');
-      setOpen(false);
+			setTime("");
+			setDescription("");
+			setOpen(false);
 		} catch (error) {
 			addToast(error.message, "error");
 		}
 	};
 
+	
 	useEffect(() => {
 		if (seats === 1) setPrice("7JD");
 		if (seats === 2) setPrice("5JD");

@@ -30,22 +30,21 @@ const SocketProvider = ({ children }) => {
 	}, [isAuthenticated]);
 
 	useEffect(() => {
-		if (socket && user.routeId._id) {
-			// console.log("حي عينك");
-
+		if (socket && user?.routeId._id) {
 			socket.emit("join_route", user.routeId._id);
 		}
-	}, [socket, user?.routeId]);
+	}, [socket, user]);
 
 	useEffect(() => {
 		if (socket) {
 			socket.on("memebers_count", (count) => {
-				// console.log(count);
 				setActiveMemebersCount(count);
 			});
 
 			return () => {
-				socket.off("memebers_count");
+				socket.off("memebers_count", (count) => {
+					setActiveMemebersCount(count);
+				});
 			};
 		}
 	}, [socket]);

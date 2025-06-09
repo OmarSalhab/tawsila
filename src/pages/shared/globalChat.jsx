@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Reply } from "lucide-react";
 import { Link } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import ChatInput from "../../components/chatInput";
@@ -12,17 +12,28 @@ export default function GlobalChat() {
 	const { user } = useAuth();
 	const { socket, activeMemebersCount } = useSocket();
 	const [members, setMembers] = useState(0);
-
+	const [replayToUser, setReplayToUser] = useState(null);
 	const handleSubmit = (inputValue) => {
 		if (!inputValue.trim()) return;
-		// Emit the message to the server
-		socket?.emit("send_message", {
-			content: inputValue,
-			userName: user?.name,
-			senderId: user?._id,
-			routeId: user?.routeId?._id,
-			createdAt: Date.now(),
-		});
+		if (replayToUser) {
+			socket?.emit("send_message", {
+				content: inputValue,
+				userName: user?.name,
+				senderId: user?._id,
+				reply: replayToUser.id,
+				routeId: user?.routeId?._id,
+				createdAt: Date.now(),
+			});
+			setReplayToUser(null);
+		} else {
+			socket?.emit("send_message", {
+				content: inputValue,
+				userName: user?.name,
+				senderId: user?._id,
+				routeId: user?.routeId?._id,
+				createdAt: Date.now(),
+			});
+		}
 	};
 	useEffect(() => {
 		const fetchMemebers = async () => {
@@ -39,20 +50,38 @@ export default function GlobalChat() {
 	useEffect(() => {
 		if (socket) {
 			const handleMessage = (message) => {
-				const newMessage = {
-					id: message.msgId,
-					userId: message.userId,
-					user: message.userName,
-					text: message.content,
-					time: new Date().toLocaleTimeString([], {
-						month: "2-digit",
-						day: "2-digit",
-						hour: "2-digit",
-						minute: "2-digit",
-					}),
-					type: message.role,
-				};
-				setMessages((prev) => [...prev, newMessage]);
+				if (message.reply) {
+					const newMessage = {
+						id: message.msgId,
+						userId: message.userId,
+						user: message.userName,
+						reply: message.reply,
+						text: message.content,
+						time: new Date().toLocaleTimeString([], {
+							month: "2-digit",
+							day: "2-digit",
+							hour: "2-digit",
+							minute: "2-digit",
+						}),
+						type: message.role,
+					};
+					setMessages((prev) => [...prev, newMessage]);
+				} else {
+					const newMessage = {
+						id: message.msgId,
+						userId: message.userId,
+						user: message.userName,
+						text: message.content,
+						time: new Date().toLocaleTimeString([], {
+							month: "2-digit",
+							day: "2-digit",
+							hour: "2-digit",
+							minute: "2-digit",
+						}),
+						type: message.role,
+					};
+					setMessages((prev) => [...prev, newMessage]);
+				}
 			};
 			socket.on("receive_message", handleMessage);
 			return () => {
@@ -69,6 +98,7 @@ export default function GlobalChat() {
 		try {
 			const fetchMessages = async () => {
 				const messagesList = await getChat();
+
 				setMessages(messagesList);
 			};
 			fetchMessages();
@@ -97,18 +127,18 @@ export default function GlobalChat() {
 						Route-specific ride sharing group
 					</span>
 				</div>
-				<div className="flex flex-col justify-center">
+				<div className="flex flex-col justify-center items-start">
 					<div className="text-white text-[10px]">
 						<span className="text-secondary font-semibold text-sm">
 							{members}
 						</span>{" "}
 						Members
 					</div>
-					<div className="text-white text-[10px]">
-						<span className="text-secondary font-semibold text-sm">
+					<div className="text-white text-[10px] flex items-center justify-start gap-1">
+						<div className="w-2 h-2 rounded-full bg-green-500"></div>
+						<span className="text-white font-semibold text-sm">
 							{activeMemebersCount}
 						</span>{" "}
-						Active
 					</div>
 				</div>
 			</div>
@@ -124,41 +154,96 @@ export default function GlobalChat() {
 						messages.length > 0 ? (
 							<>
 								{messages.map((msg) => (
-									<div
-										key={msg.id}
-										className={
-											msg.userId === user._id
-												? "flex justify-end"
-												: "flex justify-start"
-										}
-									>
-										<div
-											className={
-												msg.type === "driver"
-													? "bg-yellow-100 border border-yellow-200 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
-													: msg.userId === user._id
-													? "bg-primary text-white max-w-xs p-3 rounded-lg shadow-sm"
-													: "bg-gray-100 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
-											}
-										>
-											<div className="flex items-center mb-1">
-												<span className="font-medium text-sm">
-													{msg.user}
-													{msg.type === "driver" && (
-														<span className="text-xs text-yellow-600 ml-1">
-															(Driver)
+									<>
+										{msg.reply ? (
+											<>
+												<div
+													key={msg.id}
+													className={
+														msg.userId === user._id
+															? "flex flex-col items-end "
+															: "flex flex-col items-start "
+													}
+												>
+													<div className=" bg-slate-200 rounded-md opacity-60">
+														<div className="overflow-clip max-h-[110px] max-w-[220px] text-center p-3 ">
+															{
+																messages.find((chat) => chat.id === msg.reply)
+																	.text
+															}
+															
+														</div>
+													</div>
+													<div
+														className={
+															msg.type === "driver"
+																? "bg-yellow-100 border border-yellow-200 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
+																: msg.userId === user._id
+																? "bg-primary text-white max-w-xs p-3 rounded-lg shadow-sm"
+																: "bg-gray-100 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
+														}
+													>
+														<div className="flex items-center mb-1">
+															<span className="font-medium text-sm">
+																{msg.user}
+																{msg.type === "driver" && (
+																	<span className="text-xs text-yellow-600 ml-1">
+																		(Driver)
+																	</span>
+																)}
+															</span>
+															<button onClick={() => setReplayToUser(msg)}>
+																<Reply className="w-4 h-4 text-gray-400 m-2" />{" "}
+															</button>
+														</div>
+														<div className="text-sm mb-1">{msg.text}</div>
+														<div className="text-xs text-right text-gray-400">
+															{msg.time}
+														</div>
+													</div>
+												</div>
+											</>
+										) : (
+											<div
+												key={msg.id}
+												className={
+													msg.userId === user._id
+														? "flex justify-end"
+														: "flex justify-start"
+												}
+											>
+												<div
+													className={
+														msg.type === "driver"
+															? "bg-yellow-100 border border-yellow-200 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
+															: msg.userId === user._id
+															? "bg-primary text-white max-w-xs p-3 rounded-lg shadow-sm"
+															: "bg-gray-100 text-gray-800 max-w-xs p-3 rounded-lg shadow-sm"
+													}
+												>
+													<div className="flex items-center mb-1">
+														<span className="font-medium text-sm">
+															{msg.user}
+															{msg.type === "driver" && (
+																<span className="text-xs text-yellow-600 ml-1">
+																	(Driver)
+																</span>
+															)}
 														</span>
-													)}
-												</span>
+														<button onClick={() => setReplayToUser(msg)}>
+															<Reply className="w-4 h-4 text-gray-400 m-2" />{" "}
+														</button>
+													</div>
+													<div className="text-sm mb-1">{msg.text}</div>
+													<div className="text-xs text-right text-gray-400">
+														{msg.time}
+													</div>
+												</div>
 											</div>
-											<div className="text-sm mb-1">{msg.text}</div>
-											<div className="text-xs text-right text-gray-400">
-												{msg.time}
-											</div>
-										</div>
-									</div>
+										)}
+										<div ref={messagesEndRef} />
+									</>
 								))}
-								<div ref={messagesEndRef} />
 							</>
 						) : (
 							<p className="text-gray-400 text-lg text-center">
@@ -170,6 +255,19 @@ export default function GlobalChat() {
 					)}
 				</div>
 				{/* Input Bar */}
+				{replayToUser && (
+					<div className="w-full bg-gray-100 rounded-lg flex justify-between p-3 max-h-[100px]">
+						<div className="overflow-auto">{replayToUser.text}</div>
+						<div
+							className="m-2"
+							onClick={() => {
+								setReplayToUser(null);
+							}}
+						>
+							X
+						</div>
+					</div>
+				)}
 				<ChatInput setIsTyping={setIsTyping} handleSubmit={handleSubmit} />
 			</div>
 		</div>

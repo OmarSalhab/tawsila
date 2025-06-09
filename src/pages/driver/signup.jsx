@@ -174,9 +174,12 @@ export default function Signup() {
 								...values,
 								imageUrl: image, // Add the uploaded image URL to the signup data
 							};
-
+							
+							
 							// Call the signup API
 							const response = await signupDriver(signupData);
+							
+							
 							if (response) {
 								// If signup is successful, navigate to login
 								navigate("/signup-success");

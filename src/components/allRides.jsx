@@ -2,14 +2,29 @@ import { useEffect, useState } from "react";
 import useAuth from "../hooks/useAuth";
 import { getAvailableTrips } from "../services/rideApi";
 import RideSkeleton from "./rideSkeleton";
+import { useNavigate } from "react-router-dom";
+import useSocket from "../hooks/useSocket";
 
+const formatTime = (time) => {
+	const formatedTime =
+		parseInt(time.split(":")[0]) >= 12
+			? parseInt(time.split(":")[0]) === 12
+				? `${time} PM`
+				: `${parseInt(time.split(":")[0]) - 12}:${time.split(":")[1]} PM`
+			: parseInt(time.split(":")[0]) === 0
+			? `12:${time.split(":")[1]} AM`
+			: `${time} AM`;
+	return formatedTime;
+};
 export default function AllRides() {
 	const { user } = useAuth();
+	const { socket } = useSocket();
 	const [rides, setRides] = useState({
 		data: undefined,
 		loading: false,
 		error: null,
 	});
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		// const abortController = new AbortController();
@@ -30,6 +45,16 @@ export default function AllRides() {
 		// };
 	}, [user?.routeId]);
 
+	useEffect(() => {
+		if (socket) {
+			socket.on("new_ride", (ride) => {
+				setRides((prev) => ({ ...prev, data: [...prev.data, ride] }));
+			});
+			return () => {
+				socket.off("new_ride");
+			};
+		}
+	}, [socket]);
 	if (user.role === "passenger") {
 		if (rides.loading || !rides.data) return <RideSkeleton />;
 		return (
@@ -44,7 +69,7 @@ export default function AllRides() {
 						</p>
 					</div>
 				) : (
-					<div className="space-y-4 mt-4">
+					<div className="space-y-4 mt-4 flex flex-col-reverse">
 						{rides?.data.map((trip) => (
 							<div
 								key={trip._id}
@@ -86,9 +111,20 @@ export default function AllRides() {
 										</svg>
 										{trip.driverId.ratingValue}
 									</span>
-									<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
-										{trip.time} AM
-									</span>
+									<div className="flex flex-col">
+										<span className="bg-gray-100 text-primary text-md font-medium rounded px-4 py-0.5 ml-2">
+											{trip.dayMonth ===
+											new Date().toLocaleDateString("en-GB", {
+												day: "2-digit",
+												month: "2-digit",
+											})
+												? `Today`
+												: `Tomorrow`}
+										</span>
+										<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
+											{formatTime(trip.time)}
+										</span>
+									</div>
 								</div>
 								<div className="flex flex-row items-center">
 									<div className="flex flex-col items-left w-4/5">
@@ -105,7 +141,7 @@ export default function AllRides() {
 									<span className="text-right w-1/5">
 										<span className="block text-xs text-gray-400">Price</span>
 										<span className="text-lg font-semibold text-gray-900">
-											{trip.price.toFixed(2)}
+											{`${trip.price.toFixed(2)} JD`}
 										</span>
 									</span>
 								</div>
@@ -119,7 +155,7 @@ export default function AllRides() {
 									<button
 										type="button"
 										className="mt-3 border border-primary text-primary font-semibold rounded-md py-2 px-3 transition-colors"
-										
+										onClick={() => navigate("/ride-room-passenger")}
 									>
 										Join Ride
 									</button>
@@ -188,9 +224,26 @@ export default function AllRides() {
 										</svg>
 										{trip.driverId.ratingValue}
 									</span>
-									<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
-										{trip.time}
-									</span>
+									<div className="flex flex-col">
+										<span className="bg-gray-100 text-primary text-md font-medium rounded px-4 py-0.5 ml-2">
+											{trip.dayMonth <=
+											new Date().toLocaleDateString("en-GB", {
+												day: "2-digit",
+												month: "2-digit",
+											})
+												? trip.dayMonth <
+												  new Date().toLocaleDateString("en-GB", {
+														day: "2-digit",
+														month: "2-digit",
+												  })
+													? `Ended`
+													: `Today`
+												: `Tomorrow`}
+										</span>
+										<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
+											{formatTime(trip.time)}
+										</span>
+									</div>
 								</div>
 								<div className="flex flex-row items-center">
 									<div className="flex flex-col items-left w-4/5">
@@ -207,7 +260,7 @@ export default function AllRides() {
 									<span className="text-right w-1/5">
 										<span className="block text-xs text-gray-400">Price</span>
 										<span className="text-lg font-semibold text-gray-900">
-											{trip.price.toFixed(2)}
+										{`${trip.price.toFixed(2)} JD`}
 										</span>
 									</span>
 								</div>

@@ -2,6 +2,19 @@ import { useEffect, useState } from "react";
 import { Car } from "lucide-react";
 import { getMyRides } from "../services/rideApi";
 import RideSkeleton from "./rideSkeleton";
+
+const formatTime = (time) => {
+	const formatedTime =
+		parseInt(time.split(":")[0]) >= 12
+			? parseInt(time.split(":")[0]) === 12
+				? `${time} PM`
+				: `${parseInt(time.split(":")[0]) - 12}:${time.split(":")[1]} PM`
+			: parseInt(time.split(":")[0]) === 0
+			? `12:${time.split(":")[1]} AM`
+			: `${time} AM`;
+	return formatedTime;
+};
+
 export default function DriverMyRides() {
 	const [myRides,setMyRides] = useState({
 		data: undefined,
@@ -32,7 +45,7 @@ export default function DriverMyRides() {
 	}, []);
 
 	if(myRides.loading || !myRides.data) return <RideSkeleton/>
-	if (myRides.length === 0) {
+	if (myRides.data.length === 0) {
 		return (
 			<div className="bg-white rounded-lg shadow-md p-8 mt-8 flex flex-col items-center justify-center text-center mx-auto max-w-md">
 				<Car className="w-10 h-10 text-gray-400 mb-3" />
@@ -66,14 +79,14 @@ export default function DriverMyRides() {
 							{ride.driverId.gender.charAt(0).toUpperCase() +
 								ride.driverId.gender.slice(1)}
 						</span>
-						<span className="flex items-center text-yellow-500 text-sm font-semibold bg-yellow-100 rounded px-1.5 py-0.5 ml-2">
+						<span className="flex items-center text-black-500 text-sm font-semibold bg-yellow-100 rounded px-1.5 py-0.5 ml-2">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								fill="none"
 								viewBox="0 0 24 24"
 								strokeWidth={1.5}
 								stroke="currentColor"
-								className="w-4 h-4 mr-0.5"
+								className="w-4 h-4 mr-0.5 text-secondary"
 							>
 								<path
 									strokeLinecap="round"
@@ -83,9 +96,26 @@ export default function DriverMyRides() {
 							</svg>
 							{ride.driverId.ratingValue}
 						</span>
-						<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
-							{ride.time}
-						</span>
+						<div className="flex flex-col">
+										<span className="bg-gray-100 text-primary text-md font-medium rounded px-4 py-0.5 ml-2">
+											{ride.dayMonth <=
+											new Date().toLocaleDateString("en-GB", {
+												day: "2-digit",
+												month: "2-digit",
+											})
+												? ride.dayMonth <
+												  new Date().toLocaleDateString("en-GB", {
+														day: "2-digit",
+														month: "2-digit",
+												  })
+													? `Ended`
+													: `Today`
+												: `Tomorrow`}
+										</span>
+										<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
+											{formatTime(ride.time)}
+										</span>
+									</div>
 					</div>
 					<div className="flex items-center space-x-2 mt-2 mb-1">
 						<span className="flex items-center text-sm">
@@ -104,8 +134,8 @@ export default function DriverMyRides() {
 						</span>
 						<span className="text-right">
 							<span className="block text-xs text-gray-400">Price</span>
-							<span className="text-lg font-bold text-gray-900">
-								{ride.price.toFixed(2)}
+							<span className="text-lg font-semibold text-gray-900">
+							{`${ride.price.toFixed(2)} JD`}
 							</span>
 						</span>
 					</div>
