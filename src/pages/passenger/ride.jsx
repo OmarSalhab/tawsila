@@ -1,8 +1,9 @@
 import { ArrowLeft, User } from "lucide-react";
 import { useState } from "react";
 import RideChat from "../../components/rideChat";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import carInterior from "../../assets/machine-inside-interior-of-the-vehicle-vector-2AKH64B.jpg";
+
 const formatTime = (time) => {
 	const formatedTime =
 		parseInt(time.split(":")[0]) >= 12
@@ -25,9 +26,11 @@ export default function Ride() {
 	const [selectedSeat, setSelectedSeat] = useState(null);
 	const [tab, setTab] = useState("Seats");
 	const location = useLocation();
+	const {tripId} = useParams();
 	const ride = location.state;
-	console.log(ride);
+	console.log(tripId);
 
+	const handleBooking = () => {};
 	return (
 		<div className="h-screen bg-gray-50 ">
 			{/* Header */}
@@ -142,7 +145,7 @@ export default function Ride() {
 										className="w-full h-full object-cover rounded-lg"
 										alt="seat selection image"
 									/>
-									<div className="absolute top-[47%] left-[17%] right-[17%] flex justify-between px-2">
+									<div className="absolute top-[47%] left-[19%] right-[19%] flex justify-between px-2">
 										<span className="bg-gray-300 text-gray-700 text-xs px-3 py-2 rounded font-semibold">
 											Driver
 										</span>
@@ -199,14 +202,14 @@ export default function Ride() {
 						<button
 							type="button"
 							className="w-full bg-primary text-white font-semibold py-2 rounded-md mt-6"
-							onClick={() => {}}
+							onClick={handleBooking}
 						>
 							Book Ride
 						</button>
 					</div>
 				</>
 			) : (
-				<RideChat />
+				<RideChat tripId={tripId}/>
 			)}
 		</div>
 	);

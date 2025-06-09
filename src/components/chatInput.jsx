@@ -20,7 +20,7 @@ const ChatInput = ({ setIsTyping, handleSubmit, children }) => {
 
 	return (
 
-		<div className="p-3 border-t flex items-center bg-white">
+		<div className="p-3 border-t flex items-center bg-white ">
             {children}
         	<textarea
 				ref={textareaRef}

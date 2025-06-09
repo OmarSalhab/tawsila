@@ -4,7 +4,7 @@ import useAuth from "../../hooks/useAuth";
 import ChatInput from "../../components/chatInput";
 import { useEffect, useRef, useState } from "react";
 import useSocket from "../../hooks/useSocket";
-import { getChat, getMemebers } from "../../services/getChat";
+import { getRouteChat, getMemebers } from "../../services/chatApi";
 export default function GlobalChat() {
 	const [isTyping, setIsTyping] = useState(false);
 	const [messages, setMessages] = useState([]);
@@ -16,7 +16,7 @@ export default function GlobalChat() {
 	const handleSubmit = (inputValue) => {
 		if (!inputValue.trim()) return;
 		if (replayToUser) {
-			socket?.emit("send_message", {
+			socket?.emit("send_route_message", {
 				content: inputValue,
 				userName: user?.name,
 				senderId: user?._id,
@@ -26,7 +26,7 @@ export default function GlobalChat() {
 			});
 			setReplayToUser(null);
 		} else {
-			socket?.emit("send_message", {
+			socket?.emit("send_route_message", {
 				content: inputValue,
 				userName: user?.name,
 				senderId: user?._id,
@@ -83,9 +83,9 @@ export default function GlobalChat() {
 					setMessages((prev) => [...prev, newMessage]);
 				}
 			};
-			socket.on("receive_message", handleMessage);
+			socket.on("receive_route_message", handleMessage);
 			return () => {
-				socket.off("receive_message", handleMessage);
+				socket.off("receive_route_message", handleMessage);
 			};
 		}
 	}, [socket]);
@@ -97,7 +97,7 @@ export default function GlobalChat() {
 	useEffect(() => {
 		try {
 			const fetchMessages = async () => {
-				const messagesList = await getChat();
+				const messagesList = await getRouteChat();
 
 				setMessages(messagesList);
 			};

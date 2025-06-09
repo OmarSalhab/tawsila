@@ -35,6 +35,8 @@ const SocketProvider = ({ children }) => {
 		}
 	}, [socket, user]);
 
+	
+
 	useEffect(() => {
 		if (socket) {
 			socket.on("memebers_count", (count) => {
@@ -43,6 +45,20 @@ const SocketProvider = ({ children }) => {
 
 			return () => {
 				socket.off("memebers_count", (count) => {
+					setActiveMemebersCount(count);
+				});
+			};
+		}
+	}, [socket]);
+
+	useEffect(() => {
+		if (socket) {
+			socket.on("room_memebers_count", (count) => {
+				setActiveMemebersCount(count);
+			});
+
+			return () => {
+				socket.off("room_memebers_count", (count) => {
 					setActiveMemebersCount(count);
 				});
 			};
