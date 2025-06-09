@@ -119,7 +119,7 @@ const AppRoutes = () => {
 				}
 			/>
 			<Route
-				path="/ride-room-passenger"
+				path="/ride-room-passenger/:tripId"
 				element={
 					token ? (
 						isAuthrized() === "passenger" ? (

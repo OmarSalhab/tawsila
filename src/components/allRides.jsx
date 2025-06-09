@@ -155,7 +155,7 @@ export default function AllRides() {
 									<button
 										type="button"
 										className="mt-3 border border-primary text-primary font-semibold rounded-md py-2 px-3 transition-colors"
-										onClick={() => navigate("/ride-room-passenger")}
+										onClick={() => navigate(`/ride-room-passenger/${trip._id}`,{state: trip})}
 									>
 										Join Ride
 									</button>
