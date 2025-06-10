@@ -3,7 +3,8 @@ import { useState } from "react";
 import RideChat from "../../components/rideChat";
 import { Link, useLocation, useParams } from "react-router-dom";
 import carInterior from "../../assets/machine-inside-interior-of-the-vehicle-vector-2AKH64B.jpg";
-
+import useSocket from "../../hooks/useSocket";
+import {} from "../"
 const formatTime = (time) => {
 	const formatedTime =
 		parseInt(time.split(":")[0]) >= 12
@@ -27,10 +28,17 @@ export default function Ride() {
 	const [tab, setTab] = useState("Seats");
 	const location = useLocation();
 	const {tripId} = useParams();
+	const {activeRoomMemebersCount} = useSocket();
 	const ride = location.state;
 	console.log(tripId);
 
-	const handleBooking = () => {};
+	const handleBooking = async () => {
+		try {
+			const response = await joinRide(selectedSeat);
+		} catch (error) {
+			
+		}
+	};
 	return (
 		<div className="h-screen bg-gray-50 ">
 			{/* Header */}
@@ -48,6 +56,7 @@ export default function Ride() {
 						{ride.dayMonth} at {formatTime(ride.time)}
 					</span>
 				</div>
+				<div className="text-white underline">Members {activeRoomMemebersCount}</div>
 			</div>
 			{/* Tabs */}
 			<div className="flex bg-gray-100 border-b border-gray-200">
@@ -99,6 +108,7 @@ export default function Ride() {
 								<span className="w-3 h-3 rounded-full bg-secondary mr-1" />
 								{ride.routeId.to}
 							</span>
+							
 						</div>
 						<hr className="my-2" />
 						<div className="flex flex-wrap gap-4 mb-2">

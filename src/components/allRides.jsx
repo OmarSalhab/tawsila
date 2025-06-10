@@ -113,12 +113,18 @@ export default function AllRides() {
 									</span>
 									<div className="flex flex-col">
 										<span className="bg-gray-100 text-primary text-md font-medium rounded px-4 py-0.5 ml-2">
-											{trip.dayMonth ===
+											{trip.dayMonth <=
 											new Date().toLocaleDateString("en-GB", {
 												day: "2-digit",
 												month: "2-digit",
 											})
-												? `Today`
+												? trip.dayMonth <
+												  new Date().toLocaleDateString("en-GB", {
+														day: "2-digit",
+														month: "2-digit",
+												  })
+													? `Ended`
+													: `Today`
 												: `Tomorrow`}
 										</span>
 										<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">

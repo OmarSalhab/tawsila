@@ -5,7 +5,7 @@ import useAuth from "../useAuth";
 const SocketProvider = ({ children }) => {
 	const [socket, setSocket] = useState(null);
 	const [activeMemebersCount, setActiveMemebersCount] = useState(0);
-
+	const [activeRoomMemebersCount,setActiveRoomMemebersCount]= useState(0);
 	const { user, isAuthenticated } = useAuth();
 
 	useEffect(() => {
@@ -54,18 +54,18 @@ const SocketProvider = ({ children }) => {
 	useEffect(() => {
 		if (socket) {
 			socket.on("room_memebers_count", (count) => {
-				setActiveMemebersCount(count);
+				setActiveRoomMemebersCount(count);
 			});
 
 			return () => {
 				socket.off("room_memebers_count", (count) => {
-					setActiveMemebersCount(count);
+					setActiveRoomMemebersCount(count);
 				});
 			};
 		}
 	}, [socket]);
 	return (
-		<Context.Provider value={{ socket, activeMemebersCount }}>
+		<Context.Provider value={{ socket, activeMemebersCount,activeRoomMemebersCount }}>
 			{children}
 		</Context.Provider>
 	);

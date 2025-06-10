@@ -2,12 +2,10 @@ import { useState } from "react";
 import { User, MessageCircle } from "lucide-react";
 import Profile from "../../components/profile";
 import { useNavigate } from "react-router-dom";
-import useAuth from "../../hooks/useAuth";
 import AllRides from "../../components/allRides";
 
 export default function Home() {
 	const [showProfile, setShowProfile] = useState(false);
-	const { user } = useAuth();
 	const navigate = useNavigate();
 
 	return (

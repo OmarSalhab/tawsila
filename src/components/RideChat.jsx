@@ -12,7 +12,7 @@ export default function RideChat({ tripId }) {
 	const messagesEndRef = useRef(null); // Add this ref
 	const { user } = useAuth();
 
-	const { socket, activeMemebersCount } = useSocket();
+	const { socket,activeRoomMemebersCount } = useSocket();
 	// const [members, setMembers] = useState(0);
 	const [replayToUser, setReplayToUser] = useState(null);
 

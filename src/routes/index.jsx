@@ -50,6 +50,7 @@ const AppRoutes = () => {
 				}
 			/>
 			<Route path="/login" element={<SharedLoginPage />} />
+			<Route path="/home" element={<Navigate to={"/"} replace/>} />
 			<Route
 				path="/role"
 				element={token ? <Navigate to={"/"} replace /> : <SharedRolePage />}

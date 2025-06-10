@@ -1,13 +1,10 @@
 import apiClient from "./apiClient";
 
-
 export const signupDriver = async (data) => {
 	try {
-		const response = await apiClient.post(
-			"/api/users/register/driver",
-			data,
-			{ withCredentials: true }
-		);
+		const response = await apiClient.post("/api/users/register/driver", data, {
+			withCredentials: true,
+		});
 		if (response.status === 201) return response.data;
 	} catch (error) {
 		throw {
@@ -16,7 +13,6 @@ export const signupDriver = async (data) => {
 		};
 	}
 };
-
 
 export const signupPassenger = async (data) => {
 	try {
@@ -50,7 +46,6 @@ export const login = async (data) => {
 		}
 	}
 };
-
 
 export const refresh = async () => {
 	try {
