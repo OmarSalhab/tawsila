@@ -109,7 +109,7 @@ const AppRoutes = () => {
 				}
 			/>
 			<Route
-				path="/ride-room-driver"
+				path="/ride-room-driver/:tripId"
 				element={
 					token ? (
 						isAuthrized() === "driver" ? (

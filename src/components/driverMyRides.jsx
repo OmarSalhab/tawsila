@@ -1,22 +1,13 @@
 import { Car } from "lucide-react";
 import RideSkeleton from "./rideSkeleton";
 import useRide from "../hooks/useRide";
+import { useNavigate } from "react-router-dom";
+import {formatTime} from '../services/formatTime'
 
-const formatTime = (time) => {
-	const formatedTime =
-		parseInt(time.split(":")[0]) >= 12
-			? parseInt(time.split(":")[0]) === 12
-				? `${time} PM`
-				: `${parseInt(time.split(":")[0]) - 12}:${time.split(":")[1]} PM`
-			: parseInt(time.split(":")[0]) === 0
-			? `12:${time.split(":")[1]} AM`
-			: `${time} AM`;
-	return formatedTime;
-};
 
 export default function DriverMyRides() {
 	const { driverRides: myRides, filterLoading: loading } = useRide();
-
+	const navigate = useNavigate();
 	if (loading || !myRides) return <RideSkeleton />;
 	if (myRides.length === 0) {
 		return (
@@ -37,7 +28,9 @@ export default function DriverMyRides() {
 				<div
 					key={ride._id}
 					className="relative bg-white rounded-lg shadow-md p-4 flex flex-col mb-2"
-					onClick={}
+					onClick={() => {
+						navigate(`/ride-room-driver/${ride._id}`);
+					}}
 				>
 					<span className="absolute left-0 top-0 h-full w-1.5 rounded-l-lg bg-secondary" />
 					<div className="flex items-center justify-between mb-1">

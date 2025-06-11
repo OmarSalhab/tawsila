@@ -1,46 +1,70 @@
 import { ArrowLeft, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import RideChat from "../../components/rideChat";
-import {Link } from "react-router-dom";
-const ride = {
-	driverName: "Ahmad",
-	driverGender: "male",
-	driverRating: 4.8,
-	origin: "Amman",
-	destination: "Zarqa",
-	date: "Today",
-	time: "15:30",
-	price: "3.50 JD",
-	availableSeats: 2,
-	description:
-		"Regular commute ride from Amman to Zarqa. Pick-up point near Mecca Mall and drop-off at Zarqa New Bus Station.",
-};
+import { Link, useParams } from "react-router-dom";
+import { formatTime } from "../../services/formatTime";
+import useRide from "../../hooks/useRide";
+import useSocket from "../../hooks/useSocket";
+import RideSkeleton from "../../components/rideSkeleton";
+import carInterior from "../../assets/machine-inside-interior-of-the-vehicle-vector-2AKH64B.jpg";
 
-const seatLayout = [
-	{ id: 1, label: "Left Back" },
-	{ id: 2, label: "Middle Back" },
-	{ id: 3, label: "Right Back" },
-];
 
 export default function Ride() {
 	const [selectedSeat, setSelectedSeat] = useState(null);
 	const [tab, setTab] = useState("Seats");
-    
+	const [ride, setRide] = useState(null);
+	const { activeRoomMemebersCount } = useSocket();
+	const { isPassengerJoined, rides } = useRide();
+	const { tripId } = useParams();
+	const [seatLayout, setSeatLayout] = useState([
+		{ id: 1, label: "Front", booked: false },
+		{ id: 2, label: "Left Back", booked: false },
+		{ id: 3, label: "Middle Back", booked: false },
+		{ id: 4, label: "Right Back", booked: false },
+	]);
+
+	useEffect(() => {
+		if (rides) {
+			const targetRide = rides.find(
+				(ride) => ride._id.toString() === tripId.toString()
+			);
+			setRide(targetRide);
+			if (targetRide) {
+				// Get all booked seat IDs
+				const bookedSeatIds = targetRide.joinedPassengers.map((p) => p.seatId);
+
+				// Update seatLayout to mark booked seats
+				setSeatLayout((prev) =>
+					prev.map((seat) => ({
+						...seat,
+						booked: bookedSeatIds.includes(seat.id),
+					}))
+				);
+			}
+		}
+	}, [rides, tripId]);
+
+	if (!ride) return <RideSkeleton />;
 
 	return (
 		<div className="h-screen bg-gray-50 ">
 			{/* Header */}
 			<div className="w-full bg-primary py-4 flex items-center px-4">
 				<button type="button" className="text-white mr-2">
-                <Link to="/home-driver"><ArrowLeft className="w-6 h-6" /> </Link>
+					<Link to="/home-driver">
+						<ArrowLeft className="w-6 h-6" />{" "}
+					</Link>
 				</button>
 				<div className="flex flex-col flex-1">
 					<span className="text-white text-base font-semibold">
-						{ride.origin} to {ride.destination}
+						{ride.routeId.from} to {ride.routeId.to}
 					</span>
 					<span className="text-white text-xs font-normal opacity-80">
-						{ride.date} at {ride.time}
+						{ride.dayMonth} at {formatTime(ride.time)}
 					</span>
+				</div>
+				<div className="text-white underline">
+					Members {activeRoomMemebersCount}
 				</div>
 			</div>
 			{/* Tabs */}
@@ -75,20 +99,23 @@ export default function Ride() {
 							</span>
 							<div>
 								<div className="font-semibold text-gray-900">
-									{ride.driverName}
+									{ride.driverId.name}
 								</div>
 								<div className="text-xs text-gray-500">Driver</div>
+								<div className="text-xs text-gray-500">
+									{ride.driverId.gender}
+								</div>
 							</div>
 						</div>
 						<div className="flex items-center mb-2">
 							<span className="flex items-center text-sm">
 								<span className="w-3 h-3 rounded-full bg-primary mr-1" />
-								{ride.origin}
+								{ride.routeId.from}
 							</span>
 							<span className="mx-2 text-gray-400">|</span>
 							<span className="flex items-center text-sm">
 								<span className="w-3 h-3 rounded-full bg-secondary mr-1" />
-								{ride.destination}
+								{ride.routeId.to}
 							</span>
 						</div>
 						<hr className="my-2" />
@@ -96,13 +123,13 @@ export default function Ride() {
 							<div>
 								<div className="text-xs text-gray-500">Date</div>
 								<div className="text-sm text-gray-900 font-semibold">
-									{ride.date}
+									{ride.dayMonth}
 								</div>
 							</div>
 							<div>
 								<div className="text-xs text-gray-500">Time</div>
 								<div className="text-sm text-gray-900 font-semibold">
-									{ride.time}
+									{formatTime(ride.time)}
 								</div>
 							</div>
 							<div>
@@ -127,32 +154,81 @@ export default function Ride() {
 					<div className="bg-white rounded-lg shadow-md p-4 mt-4 mx-3">
 						<h3 className="text-lg font-semibold mb-3">Select Your Seat</h3>
 						<div className="flex flex-col items-center">
-							<div className="bg-gray-50 border border-gray-200 rounded-lg p-4 w-full max-w-xs flex flex-col items-center">
-								<div className="flex w-full justify-between mb-4">
-									<span className="bg-gray-300 text-gray-700 text-xs px-3 py-1 rounded font-semibold">
-										Driver
-									</span>
-									<span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded font-semibold">
-										Front
-									</span>
-								</div>
-								<div className="flex w-full justify-between mt-6">
-									{seatLayout.map((seat) => (
+							<div className="bg-white border border-gray-200 rounded-lg p-4 w-full max-w-xs flex flex-col items-center relative">
+								{/* Car Interior Container */}
+								<div className="relative w-full h-full mb-4">
+									{/* Background Image */}
+									<img
+										src={carInterior}
+										className="w-full h-full object-cover rounded-lg"
+										alt="seat selection image"
+									/>
+									<div className="absolute top-[47%] left-[19%] right-[19%] flex justify-between px-2">
+										<span className="bg-gray-300 text-gray-700 text-xs px-3 py-2 rounded font-semibold">
+											Driver
+										</span>
 										<button
-											key={seat.id}
+											key={1}
 											type="button"
-											className={`text-xs font-semibold px-3 py-2 rounded transition-colors border-2 ${
-												selectedSeat === seat.id
-													? "bg-primary text-white border-primary"
-													: "bg-white text-gray-700 border-gray-300"
-											}`}
-											onClick={() => setSelectedSeat(seat.id)}
+											disabled={seatLayout[0].booked || isPassengerJoined}
+											className={`text-xs font-semibold px-3 py-2 rounded transition-colors border-2
+       										 ${
+															seatLayout[0].booked
+																? "bg-primary text-gray-400 border-gray-300 cursor-not-allowed"
+																: ""
+														}
+       										 ${
+															selectedSeat === 1 && !seatLayout[0].booked
+																? "bg-primary text-white border-primary"
+																: ""
+														}
+        									${
+														!seatLayout[0].booked && selectedSeat !== 1
+															? "bg-white/90 text-gray-700 border-gray-300"
+															: ""
+													}
+    										`}
+											onClick={() =>
+												!seatLayout[0].booked && setSelectedSeat(1)
+											}
 										>
-											{seat.label}
+											Front
 										</button>
-									))}
+									</div>
+
+									{/* Seat Buttons Container */}
+									<div className="absolute bottom-[26%] left-[27%] right-[27%] flex justify-center px-1 gap-1">
+										{seatLayout.slice(1).map((seat) => (
+											<button
+												key={seat.id}
+												type="button"
+												disabled={seat.booked || isPassengerJoined}
+												className={`text-xs font-medium px-1 py-1 rounded transition-colors border-2
+            									${
+																seat.booked
+																	? "bg-primary text-gray-400 border-gray-300 cursor-not-allowed"
+																	: ""
+															}
+            									${
+																selectedSeat === seat.id && !seat.booked
+																	? "bg-primary text-white border-primary"
+																	: ""
+															}
+            									${
+																!seat.booked && selectedSeat !== seat.id
+																	? "bg-white/90 text-gray-700 border-gray-300"
+																	: ""
+															}
+        										`}
+												onClick={() => setSelectedSeat(seat.id)}
+											>
+												{seat.label}
+											</button>
+										))}
+									</div>
 								</div>
 							</div>
+
 							{/* Legend */}
 							<div className="flex items-center gap-4 mt-4">
 								<div className="flex items-center gap-1">
@@ -169,17 +245,10 @@ export default function Ride() {
 								</div>
 							</div>
 						</div>
-						<button
-							type="button"
-							className="w-full bg-primary text-white font-semibold py-2 rounded-md mt-6"
-							onClick={() => {}}
-						>
-							Book Ride
-						</button>
 					</div>
 				</>
 			) : (
-				<RideChat />
+				<RideChat tripId={tripId} />
 			)}
 		</div>
 	);
