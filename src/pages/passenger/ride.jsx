@@ -1,10 +1,11 @@
-import { ArrowLeft, User } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, CarFront, User } from "lucide-react";
+import { useEffect, useState } from "react";
 import RideChat from "../../components/rideChat";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import carInterior from "../../assets/machine-inside-interior-of-the-vehicle-vector-2AKH64B.jpg";
 import useSocket from "../../hooks/useSocket";
-import {} from "../"
+import useRide from "../../hooks/useRide";
+import RideSkeleton from "../../components/rideSkeleton";
 const formatTime = (time) => {
 	const formatedTime =
 		parseInt(time.split(":")[0]) >= 12
@@ -17,28 +18,50 @@ const formatTime = (time) => {
 	return formatedTime;
 };
 
-const seatLayout = [
-	{ id: 2, label: "Left Back" },
-	{ id: 3, label: "Middle Back" },
-	{ id: 4, label: "Right Back" },
-];
-
 export default function Ride() {
 	const [selectedSeat, setSelectedSeat] = useState(null);
 	const [tab, setTab] = useState("Seats");
-	const location = useLocation();
-	const {tripId} = useParams();
-	const {activeRoomMemebersCount} = useSocket();
-	const ride = location.state;
-	console.log(tripId);
+	const { tripId } = useParams();
+	const [ride, setRide] = useState(null);
+	const { isPassengerJoined, joinPassenger, rides } = useRide();
+	const { activeRoomMemebersCount } = useSocket();
+	const [seatLayout, setSeatLayout] = useState([
+		{ id: 1, label: "Front", booked: false },
+		{ id: 2, label: "Left Back", booked: false },
+		{ id: 3, label: "Middle Back", booked: false },
+		{ id: 4, label: "Right Back", booked: false },
+	]);
+	useEffect(() => {
+		if (rides) {
+			const targetRide = rides.find(
+				(ride) => ride._id.toString() === tripId.toString()
+			);
+			setRide(targetRide);
+			if (targetRide) {
+				// Get all booked seat IDs
+				const bookedSeatIds = targetRide.joinedPassengers.map((p) => p.seatId);
+
+				// Update seatLayout to mark booked seats
+				setSeatLayout((prev) =>
+					prev.map((seat) => ({
+						...seat,
+						booked: bookedSeatIds.includes(seat.id),
+					}))
+				);
+			}
+		}
+	}, [rides, tripId]);
 
 	const handleBooking = async () => {
 		try {
-			const response = await joinRide(selectedSeat);
+			await joinPassenger(selectedSeat, tripId);
 		} catch (error) {
-			
+			console.error(error);
 		}
 	};
+
+	if (!ride) return <RideSkeleton />;
+
 	return (
 		<div className="h-screen bg-gray-50 ">
 			{/* Header */}
@@ -56,7 +79,9 @@ export default function Ride() {
 						{ride.dayMonth} at {formatTime(ride.time)}
 					</span>
 				</div>
-				<div className="text-white underline">Members {activeRoomMemebersCount}</div>
+				<div className="text-white underline">
+					Members {activeRoomMemebersCount}
+				</div>
 			</div>
 			{/* Tabs */}
 			<div className="flex bg-gray-100 border-b border-gray-200">
@@ -108,7 +133,6 @@ export default function Ride() {
 								<span className="w-3 h-3 rounded-full bg-secondary mr-1" />
 								{ride.routeId.to}
 							</span>
-							
 						</div>
 						<hr className="my-2" />
 						<div className="flex flex-wrap gap-4 mb-2">
@@ -162,12 +186,27 @@ export default function Ride() {
 										<button
 											key={1}
 											type="button"
-											className={`text-xs font-semibold px-3 py-2 rounded transition-colors border-2 ${
-												selectedSeat === 1
-													? "bg-primary text-white border-primary"
-													: "bg-white/90 text-gray-700 border-gray-300"
-											}`}
-											onClick={() => setSelectedSeat(1)}
+											disabled={seatLayout[0].booked || isPassengerJoined}
+											className={`text-xs font-semibold px-3 py-2 rounded transition-colors border-2
+       										 ${
+															seatLayout[0].booked
+																? "bg-primary text-gray-400 border-gray-300 cursor-not-allowed"
+																: ""
+														}
+       										 ${
+															selectedSeat === 1 && !seatLayout[0].booked
+																? "bg-primary text-white border-primary"
+																: ""
+														}
+        									${
+														!seatLayout[0].booked && selectedSeat !== 1
+															? "bg-white/90 text-gray-700 border-gray-300"
+															: ""
+													}
+    										`}
+											onClick={() =>
+												!seatLayout[0].booked && setSelectedSeat(1)
+											}
 										>
 											Front
 										</button>
@@ -175,15 +214,28 @@ export default function Ride() {
 
 									{/* Seat Buttons Container */}
 									<div className="absolute bottom-[26%] left-[27%] right-[27%] flex justify-center px-1 gap-1">
-										{seatLayout.map((seat) => (
+										{seatLayout.slice(1).map((seat) => (
 											<button
 												key={seat.id}
 												type="button"
-												className={`text-xs font-medium px-1 py-1 rounded transition-colors border-2 ${
-													selectedSeat === seat.id
-														? "bg-primary text-white border-primary"
-														: "bg-white/90 text-gray-700 border-gray-300"
-												}`}
+												disabled={seat.booked || isPassengerJoined}
+												className={`text-xs font-medium px-1 py-1 rounded transition-colors border-2
+            									${
+																seat.booked
+																	? "bg-primary text-gray-400 border-gray-300 cursor-not-allowed"
+																	: ""
+															}
+            									${
+																selectedSeat === seat.id && !seat.booked
+																	? "bg-primary text-white border-primary"
+																	: ""
+															}
+            									${
+																!seat.booked && selectedSeat !== seat.id
+																	? "bg-white/90 text-gray-700 border-gray-300"
+																	: ""
+															}
+        										`}
 												onClick={() => setSelectedSeat(seat.id)}
 											>
 												{seat.label}
@@ -211,15 +263,25 @@ export default function Ride() {
 						</div>
 						<button
 							type="button"
-							className="w-full bg-primary text-white font-semibold py-2 rounded-md mt-6"
+							disabled={isPassengerJoined}
+							className="w-full bg-primary text-white font-semibold py-2 rounded-md mt-6 disabled:bg-secondary"
 							onClick={handleBooking}
 						>
-							Book Ride
+							{isPassengerJoined ? (
+								<div className="flex justify-center items-center gap-2 ">
+									<CarFront className="w-6 h-6 text-white" />
+									<div className="font-semibold">
+										Joined, Wait To Get Picked Up!
+									</div>
+								</div>
+							) : (
+								"Book Ride"
+							)}
 						</button>
 					</div>
 				</>
 			) : (
-				<RideChat tripId={tripId}/>
+				<RideChat tripId={tripId} />
 			)}
 		</div>
 	);

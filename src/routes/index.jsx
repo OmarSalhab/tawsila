@@ -15,13 +15,16 @@ import AuthProvider from "../hooks/contexts/AuthProvider";
 import useAuth from "../hooks/useAuth";
 import LoadingSkeleton from "../components/loadingSkeleton";
 import SocketProvider from "../hooks/contexts/SocketProvider";
+import RideProvider from "../hooks/contexts/RideProvider";
 const RouteComponents = () => {
 	return (
 		<BrowserRouter>
 			<ToastProvider>
 				<AuthProvider>
 					<SocketProvider>
-						<AppRoutes />
+						<RideProvider>
+							<AppRoutes />
+						</RideProvider>
 					</SocketProvider>
 				</AuthProvider>
 			</ToastProvider>
@@ -50,7 +53,7 @@ const AppRoutes = () => {
 				}
 			/>
 			<Route path="/login" element={<SharedLoginPage />} />
-			<Route path="/home" element={<Navigate to={"/"} replace/>} />
+			<Route path="/home" element={<Navigate to={"/"} replace />} />
 			<Route
 				path="/role"
 				element={token ? <Navigate to={"/"} replace /> : <SharedRolePage />}

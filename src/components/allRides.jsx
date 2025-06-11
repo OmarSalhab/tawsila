@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
 import useAuth from "../hooks/useAuth";
-import { getAvailableTrips } from "../services/rideApi";
 import RideSkeleton from "./rideSkeleton";
 import { useNavigate } from "react-router-dom";
-import useSocket from "../hooks/useSocket";
+import useRide from "../hooks/useRide";
 
 const formatTime = (time) => {
 	const formatedTime =
@@ -16,50 +14,17 @@ const formatTime = (time) => {
 			: `${time} AM`;
 	return formatedTime;
 };
+
 export default function AllRides() {
 	const { user } = useAuth();
-	const { socket } = useSocket();
-	const [rides, setRides] = useState({
-		data: undefined,
-		loading: false,
-		error: null,
-	});
+	const { rides, loading, error,isPassengerJoined } = useRide();
 	const navigate = useNavigate();
 
-	useEffect(() => {
-		// const abortController = new AbortController();
-		const fetchRides = async () => {
-			try {
-				setRides((prev) => ({ ...prev, loading: true }));
-				const response = await getAvailableTrips();
-				setRides((prev) => ({ ...prev, data: response || [] }));
-			} catch (error) {
-				setRides((prev) => ({ ...prev, error: error }));
-			} finally {
-				setRides((prev) => ({ ...prev, loading: false }));
-			}
-		};
-		fetchRides();
-		// return () => {
-		// 	abortController.abort();
-		// };
-	}, [user?.routeId]);
-
-	useEffect(() => {
-		if (socket) {
-			socket.on("new_ride", (ride) => {
-				setRides((prev) => ({ ...prev, data: [...prev.data, ride] }));
-			});
-			return () => {
-				socket.off("new_ride");
-			};
-		}
-	}, [socket]);
 	if (user.role === "passenger") {
-		if (rides.loading || !rides.data) return <RideSkeleton />;
+		if (loading || !rides) return <RideSkeleton />;
 		return (
 			<div className="p-3">
-				{rides.data.length === 0 ? (
+				{rides.length === 0 ? (
 					<div className="bg-white rounded-lg shadow-md p-6 mt-8 flex flex-col items-center justify-center text-center mx-auto max-w-md">
 						<p className="text-gray-500 text-lg mb-1">
 							No rides available for this route right now.
@@ -69,8 +34,8 @@ export default function AllRides() {
 						</p>
 					</div>
 				) : (
-					<div className="space-y-4 mt-4 flex flex-col-reverse">
-						{rides?.data.map((trip) => (
+					<div className="space-y-4 mt-4">
+						{rides.map((trip) => (
 							<div
 								key={trip._id}
 								className="relative bg-white rounded-lg shadow-md p-4 flex flex-col mb-2"
@@ -113,18 +78,14 @@ export default function AllRides() {
 									</span>
 									<div className="flex flex-col">
 										<span className="bg-gray-100 text-primary text-md font-medium rounded px-4 py-0.5 ml-2">
-											{trip.dayMonth <=
-											new Date().toLocaleDateString("en-GB", {
-												day: "2-digit",
-												month: "2-digit",
-											})
-												? trip.dayMonth <
+											{new Date(trip.departureTime) <= new Date()
+												? `Ended`
+												: trip.dayMonth ===
 												  new Date().toLocaleDateString("en-GB", {
 														day: "2-digit",
 														month: "2-digit",
 												  })
-													? `Ended`
-													: `Today`
+												? `Today`
 												: `Tomorrow`}
 										</span>
 										<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
@@ -161,9 +122,9 @@ export default function AllRides() {
 									<button
 										type="button"
 										className="mt-3 border border-primary text-primary font-semibold rounded-md py-2 px-3 transition-colors"
-										onClick={() => navigate(`/ride-room-passenger/${trip._id}`,{state: trip})}
+										onClick={() => navigate(`/ride-room-passenger/${trip._id}`)}
 									>
-										Join Ride
+										{isPassengerJoined ? "Show" : "Join Ride"}
 									</button>
 								</div>
 							</div>
@@ -173,10 +134,10 @@ export default function AllRides() {
 			</div>
 		);
 	} else if (user.role === "driver") {
-		if (rides.loading || !rides.data) return <RideSkeleton />;
+		if (loading || !rides) return <RideSkeleton />;
 		return (
 			<div className="p-3">
-				{rides.data.length === 0 ? (
+				{rides.length === 0 ? (
 					<div className="bg-white rounded-lg shadow-md p-6 mt-8 flex flex-col items-center justify-center text-center mx-auto max-w-md">
 						<p className="text-gray-500 text-lg mb-1">
 							No rides available for this route right now.
@@ -188,11 +149,10 @@ export default function AllRides() {
 					</div>
 				) : (
 					<div className="space-y-4 mt-4">
-						{rides.data.map((trip) => (
+						{rides.map((trip) => (
 							<div
 								key={trip._id}
 								className="relative bg-white rounded-lg shadow-md p-4 flex flex-col mb-2"
-								// onClick={joinTrip}
 							>
 								{/* Orange bar */}
 								<span className="absolute left-0 top-0 h-full w-1.5 rounded-l-lg bg-secondary" />
@@ -232,18 +192,14 @@ export default function AllRides() {
 									</span>
 									<div className="flex flex-col">
 										<span className="bg-gray-100 text-primary text-md font-medium rounded px-4 py-0.5 ml-2">
-											{trip.dayMonth <=
-											new Date().toLocaleDateString("en-GB", {
-												day: "2-digit",
-												month: "2-digit",
-											})
-												? trip.dayMonth <
+											{new Date(trip.departureTime) <= new Date()
+												? `Ended`
+												: trip.dayMonth ===
 												  new Date().toLocaleDateString("en-GB", {
 														day: "2-digit",
 														month: "2-digit",
 												  })
-													? `Ended`
-													: `Today`
+												? `Today`
 												: `Tomorrow`}
 										</span>
 										<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
@@ -266,7 +222,7 @@ export default function AllRides() {
 									<span className="text-right w-1/5">
 										<span className="block text-xs text-gray-400">Price</span>
 										<span className="text-lg font-semibold text-gray-900">
-										{`${trip.price.toFixed(2)} JD`}
+											{`${trip.price.toFixed(2)} JD`}
 										</span>
 									</span>
 								</div>
