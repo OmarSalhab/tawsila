@@ -2,7 +2,7 @@ import { Car, X, Calendar, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "../hooks/useToast";
 import { createRide } from "../services/rideApi";
-export default function CreateRide({ onClick }) {
+export default function CreateRide() {
 	const [open, setOpen] = useState(false);
 	const [time, setTime] = useState("");
 	const [selectedDate, setSelectedDate] = useState("today");

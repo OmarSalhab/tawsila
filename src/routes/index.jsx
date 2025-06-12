@@ -136,7 +136,7 @@ const AppRoutes = () => {
 					)
 				}
 			/>
-			<Route path="*" element={<NotFoundPage />} />
+			<Route path="*" element={token ? <NotFoundPage/> : <Navigate to={'/login'} replace/>} />
 		</Routes>
 	);
 };

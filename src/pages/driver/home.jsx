@@ -5,11 +5,15 @@ import DriverMyRides from "../../components/driverMyRides";
 import CreateRide from "../../components/createRide";
 import { useNavigate } from "react-router-dom";
 import Profile from "../../components/profile";
-
+import useAuth from "../../hooks/useAuth";
+import useRide from "../../hooks/useRide";
+import RideSkeleton from "../../components/rideSkeleton";
 
 export default function DriverHome() {
 	const [tab, setTab] = useState("myRides");
 	const [showProfile, setShowProfile] = useState(false);
+	const { user } = useAuth();
+	const { rides, loading, driverRides: myRides, filterLoading } = useRide();
 	const navigate = useNavigate();
 
 	return (
@@ -49,16 +53,19 @@ export default function DriverHome() {
 			</div>
 
 			<div className="px-3">
-				{tab === "myRides" ? <DriverMyRides /> : <AllRides />}
+				{loading || !rides || filterLoading || !myRides ? (
+					<RideSkeleton />
+				) : tab === "myRides" ? (
+					<DriverMyRides myRides={myRides} />
+				) : (
+					<AllRides user={user} rides={rides} />
+				)}
 			</div>
 
-			<CreateRide onClick={handleCreateRide} />
+			<CreateRide />
 			<Profile open={showProfile} onClose={() => setShowProfile(false)} />
 		</div>
 	);
 }
 
-// Placeholder event handler
-function handleCreateRide() {
-	// Logic for creating a new ride (to be implemented)
-}
+

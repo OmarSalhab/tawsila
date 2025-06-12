@@ -5,14 +5,15 @@ import { Link, useParams } from "react-router-dom";
 import { formatTime } from "../../services/formatTime";
 import useRide from "../../hooks/useRide";
 import useSocket from "../../hooks/useSocket";
-import RideSkeleton from "../../components/rideSkeleton";
 import carInterior from "../../assets/machine-inside-interior-of-the-vehicle-vector-2AKH64B.jpg";
-
+import RoomSkeleton from "../../components/roomSkeleton";
+import { getPassengers, kickPassenger } from "../../services/rideApi";
 
 export default function Ride() {
 	const [selectedSeat, setSelectedSeat] = useState(null);
-	const [tab, setTab] = useState("Seats");
+	const [tab, setTab] = useState("Passengers");
 	const [ride, setRide] = useState(null);
+	const [passengers, setPassengers] = useState(null);
 	const { activeRoomMemebersCount } = useSocket();
 	const { isPassengerJoined, rides } = useRide();
 	const { tripId } = useParams();
@@ -23,6 +24,15 @@ export default function Ride() {
 		{ id: 4, label: "Right Back", booked: false },
 	]);
 
+	const handleKickPassenger = async (passengerId) => {
+		try {
+			const response = await kickPassenger(passengerId, tripId);
+			console.log(response);
+		} catch (error) {
+			console.log(error);
+		}
+	};
+	const handleCompletion = async () => {};
 	useEffect(() => {
 		if (rides) {
 			const targetRide = rides.find(
@@ -34,17 +44,29 @@ export default function Ride() {
 				const bookedSeatIds = targetRide.joinedPassengers.map((p) => p.seatId);
 
 				// Update seatLayout to mark booked seats
-				setSeatLayout((prev) =>
-					prev.map((seat) => ({
-						...seat,
-						booked: bookedSeatIds.includes(seat.id),
-					}))
+				setSeatLayout(
+					(prev) =>
+						prev.map((seat) => ({
+							...seat,
+							booked: bookedSeatIds.includes(seat.id),
+						}))
+					//----------------------------------
 				);
+				const getUsers = async () => {
+					try {
+						const users = targetRide.joinedPassengers.map((p) => p.passenger);
+						const response = await getPassengers(tripId, users);
+						setPassengers(response);
+					} catch (error) {
+						console.log(error);
+					}
+				};
+				getUsers();
 			}
 		}
 	}, [rides, tripId]);
 
-	if (!ride) return <RideSkeleton />;
+	if (!ride) return <RoomSkeleton />;
 
 	return (
 		<div className="h-screen bg-gray-50 ">
@@ -71,12 +93,12 @@ export default function Ride() {
 			<div className="flex bg-gray-100 border-b border-gray-200">
 				<button
 					className={`flex-1 py-2 text-center font-medium ${
-						tab === "Seats" &&
+						tab === "Passengers" &&
 						"border-b-2 border-primary text-primary bg-white focus:outline-none"
 					} `}
-					onClick={() => setTab("Seats")}
+					onClick={() => setTab("Passengers")}
 				>
-					Seats
+					Passengers
 				</button>
 				<button
 					className={`flex-1 py-2 text-center font-medium ${
@@ -88,67 +110,48 @@ export default function Ride() {
 					Chat
 				</button>
 			</div>
-			{tab === "Seats" ? (
+			{tab === "Passengers" ? (
 				<>
-					{/* Ride Details */}
-					<div className="bg-white rounded-lg shadow-md p-4 mt-4 mx-3">
-						<h3 className="text-lg font-semibold mb-3">Ride Details</h3>
-						<div className="flex items-center mb-2">
-							<span className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
-								<User className="w-6 h-6 text-gray-400" />
-							</span>
-							<div>
-								<div className="font-semibold text-gray-900">
-									{ride.driverId.name}
+					{/* Passenger Details */}
+					<div className="space-y-4 px-4 py-2">
+						{passengers && passengers.length > 0 ? (
+							passengers.map((p) => (
+								<div
+									key={p._id}
+									className="flex items-center justify-between bg-white rounded-lg shadow p-4 border border-gray-100"
+								>
+									<div className="flex items-center gap-4">
+										<div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-primary uppercase">
+											{p.name
+												.split(" ")
+												.map((n) => n[0])
+												.join("")}
+										</div>
+										<div>
+											<div className="font-semibold text-gray-800">
+												{p.name}
+											</div>
+											<div className="text-xs text-gray-500 capitalize">
+												{p.gender} &bull; Rating:{" "}
+												<span className="font-medium text-yellow-500">
+													{p.ratingValue}
+												</span>
+											</div>
+										</div>
+									</div>
+									<button
+										className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-semibold transition-colors"
+										onClick={() => handleKickPassenger(p._id)}
+									>
+										Kick
+									</button>
 								</div>
-								<div className="text-xs text-gray-500">Driver</div>
-								<div className="text-xs text-gray-500">
-									{ride.driverId.gender}
-								</div>
+							))
+						) : (
+							<div className="text-gray-500 text-center py-4">
+								No passengers yet.
 							</div>
-						</div>
-						<div className="flex items-center mb-2">
-							<span className="flex items-center text-sm">
-								<span className="w-3 h-3 rounded-full bg-primary mr-1" />
-								{ride.routeId.from}
-							</span>
-							<span className="mx-2 text-gray-400">|</span>
-							<span className="flex items-center text-sm">
-								<span className="w-3 h-3 rounded-full bg-secondary mr-1" />
-								{ride.routeId.to}
-							</span>
-						</div>
-						<hr className="my-2" />
-						<div className="flex flex-wrap gap-4 mb-2">
-							<div>
-								<div className="text-xs text-gray-500">Date</div>
-								<div className="text-sm text-gray-900 font-semibold">
-									{ride.dayMonth}
-								</div>
-							</div>
-							<div>
-								<div className="text-xs text-gray-500">Time</div>
-								<div className="text-sm text-gray-900 font-semibold">
-									{formatTime(ride.time)}
-								</div>
-							</div>
-							<div>
-								<div className="text-xs text-gray-500">Price</div>
-								<div className="text-sm text-gray-900 font-semibold">
-									{ride.price}
-								</div>
-							</div>
-							<div>
-								<div className="text-xs text-gray-500">Available Seats</div>
-								<div className="text-sm text-gray-900 font-semibold">
-									{ride.availableSeats}
-								</div>
-							</div>
-						</div>
-						<div>
-							<div className="text-xs text-gray-500 mb-1">Description</div>
-							<div className="text-sm text-gray-700">{ride.description}</div>
-						</div>
+						)}
 					</div>
 					{/* Seat Selection */}
 					<div className="bg-white rounded-lg shadow-md p-4 mt-4 mx-3">
@@ -170,7 +173,7 @@ export default function Ride() {
 										<button
 											key={1}
 											type="button"
-											disabled={seatLayout[0].booked || isPassengerJoined}
+											disabled={true}
 											className={`text-xs font-semibold px-3 py-2 rounded transition-colors border-2
        										 ${
 															seatLayout[0].booked
@@ -202,7 +205,7 @@ export default function Ride() {
 											<button
 												key={seat.id}
 												type="button"
-												disabled={seat.booked || isPassengerJoined}
+												disabled={true}
 												className={`text-xs font-medium px-1 py-1 rounded transition-colors border-2
             									${
 																seat.booked
@@ -245,6 +248,23 @@ export default function Ride() {
 								</div>
 							</div>
 						</div>
+						<button
+							type="button"
+							disabled={isPassengerJoined}
+							className="w-full bg-primary text-white font-semibold py-2 rounded-md mt-6 disabled:bg-secondary"
+							onClick={handleCompletion}
+						>
+							{false ? (
+								<div className="flex justify-center items-center gap-2 ">
+									<CarFront className="w-6 h-6 text-white" />
+									<div className="font-semibold">
+										Joined, Wait To Get Picked Up!
+									</div>
+								</div>
+							) : (
+								"Ride Is Completed"
+							)}
+						</button>
 					</div>
 				</>
 			) : (

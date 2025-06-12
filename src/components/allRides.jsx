@@ -1,17 +1,11 @@
-import useAuth from "../hooks/useAuth";
 import RideSkeleton from "./rideSkeleton";
 import { useNavigate } from "react-router-dom";
-import useRide from "../hooks/useRide";
-import {formatTime} from '../services/formatTime'
+import { formatTime } from "../services/formatTime";
 
-
-export default function AllRides() {
-	const { user } = useAuth();
-	const { rides, loading, error,isPassengerJoined } = useRide();
+export default function AllRides({ user, rides, isPassengerJoined,passengerRoom }) {
 	const navigate = useNavigate();
 
 	if (user.role === "passenger") {
-		if (loading || !rides) return <RideSkeleton />;
 		return (
 			<div className="p-3">
 				{rides.length === 0 ? (
@@ -114,7 +108,7 @@ export default function AllRides() {
 										className="mt-3 border border-primary text-primary font-semibold rounded-md py-2 px-3 transition-colors"
 										onClick={() => navigate(`/ride-room-passenger/${trip._id}`)}
 									>
-										{isPassengerJoined ? "Show" : "Join Ride"}
+										{passengerRoom === trip._id ? "Show" : "Join Ride"}
 									</button>
 								</div>
 							</div>
@@ -124,7 +118,6 @@ export default function AllRides() {
 			</div>
 		);
 	} else if (user.role === "driver") {
-		if (loading || !rides) return <RideSkeleton />;
 		return (
 			<div className="p-3">
 				{rides.length === 0 ? (

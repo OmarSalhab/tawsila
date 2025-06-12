@@ -9,6 +9,7 @@ const initialState = {
 	loading: undefined,
 	error: null,
 	isPassengerJoined: false,
+	passengerRoom: null,
 
 	driverRides: undefined,
 	filterLoading: false,
@@ -36,6 +37,12 @@ const RideReducer = (state, { type, payload }) => {
 		case "FAILED_ALL_AVAILABLE_RIDES":
 			return { ...state, error: payload };
 
+		case "SET_CURRENT_USER":
+			return { ...state, currentUserId: payload };
+
+		case "CLEAR":
+			return { initialState };
+
 		//DRIVER RELATED ACTIONS
 		case "FILTER_DRIVER_RIDES":
 			return { ...state, filterLoading: true };
@@ -47,33 +54,36 @@ const RideReducer = (state, { type, payload }) => {
 			return { ...state, driverRides: filteredRides, filterLoading: false };
 		}
 
-		// PASSENGER RELATED ACTIONS
-		case "ADD_PASSENGER": {
-			const { tripId, passenger, seatId } = payload;
+		case "KICK_PASSENGER": {
+			const { tripId, passengerId } = payload;
 			const updatedRides = state.rides.map((ride) =>
 				ride._id === tripId
 					? {
 							...ride,
-							joinedPassengers: [
-								...(ride.joinedPassengers || []),
-								{ passenger, seatId },
-							],
+							joinedPassengers: ride.joinedPassengers.filter(
+								(p) => p.passenger !== passengerId
+							),
 					  }
 					: ride
 			);
-			const isCurrentUser = passenger === state.currentUserId;
-			return {
-				...state,
-				rides: updatedRides,
-				isPassengerJoined: isCurrentUser ? true : state.isPassengerJoined,
-			};
+			return { ...state, rides: updatedRides };
 		}
 
+		case "COMPLETE_RIDE": {
+			const { tripId } = payload;
+			const updatedRides = state.rides.map((ride) =>
+				ride._id === tripId ? { ...ride, status: "completed" } : ride
+			);
+			return { ...state, rides: updatedRides };
+		}
+
+		// PASSENGER RELATED ACTIONS
 		case "BOOKED_RIDE":
 			return {
 				...state,
 				loading: false,
 				rides: payload,
+				passengerRoom: payload[0]._id,
 				isPassengerJoined: true,
 			};
 
@@ -88,11 +98,29 @@ const RideReducer = (state, { type, payload }) => {
 			return { ...state, rides: updatedRides };
 		}
 
-		case "SET_CURRENT_USER":
-			return { ...state, currentUserId: payload };
-
-		case "CLEAR":
-			return { initialState };
+		case "ADD_REALTIME_PASSENGER": {
+			const { tripId, passenger, seatId, ride } = payload;
+			console.log(tripId,passenger,seatId,ride);
+			
+			const updatedRides = state.rides.map((Ride) =>
+				Ride._id === tripId
+					? {
+							...Ride,
+							joinedPassengers: [
+								...(Ride.joinedPassengers || []),
+								{ passenger, seatId },
+							],
+					  }
+					: Ride
+			);
+			const isCurrentUser = passenger === state.currentUserId;
+			return {
+				...state,
+				passengerRoom: isCurrentUser ? ride[0]._id : state.passengerRoom,
+				rides: isCurrentUser ? ride : updatedRides,
+				isPassengerJoined: isCurrentUser ? true : state.isPassengerJoined,
+			};
+		}
 	}
 };
 const RideProvider = ({ children }) => {
@@ -105,12 +133,9 @@ const RideProvider = ({ children }) => {
 	const joinPassenger = useCallback(async (selectedSeat, tripId) => {
 		try {
 			const response = await joinRide(selectedSeat, tripId);
-			dispatch({
-				type: "BOOKED_RIDE",
-				payload: response,
-			});
 			return response;
 		} catch (error) {
+			console.log(error);
 			return error;
 		}
 	}, []);
@@ -129,16 +154,15 @@ const RideProvider = ({ children }) => {
 						});
 					} else if (user.role === "passenger") {
 						const response = await getAvailableTrips();
+
 						if (!response) throw Error(`Error while fetching available rides`);
-						const passengerRide = response.filter((ride) => {
-							const asignedPassenger = ride.joinedPassengers.filter(
+						const passengerRide = response.filter((ride) =>
+							ride.joinedPassengers.some(
 								(passenger) => passenger.passenger === user._id
-							);
+							)
+						);
 
-							return asignedPassenger.length !== 0;
-						});
-
-						if (passengerRide.length > 0) {
+						if (passengerRide.length && response.length) {
 							dispatch({
 								type: "BOOKED_RIDE",
 								payload: passengerRide,
@@ -175,7 +199,7 @@ const RideProvider = ({ children }) => {
 			});
 
 			socket.on("passenger_joined", (message) => {
-				dispatch({ type: "ADD_PASSENGER", payload: message });
+				dispatch({ type: "ADD_REALTIME_PASSENGER", payload: message });
 			});
 
 			return () => {

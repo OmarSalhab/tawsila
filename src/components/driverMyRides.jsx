@@ -1,14 +1,12 @@
 import { Car } from "lucide-react";
 import RideSkeleton from "./rideSkeleton";
-import useRide from "../hooks/useRide";
 import { useNavigate } from "react-router-dom";
-import {formatTime} from '../services/formatTime'
+import { formatTime } from "../services/formatTime";
 
-
-export default function DriverMyRides() {
-	const { driverRides: myRides, filterLoading: loading } = useRide();
+export default function DriverMyRides({ myRides }) {
 	const navigate = useNavigate();
-	if (loading || !myRides) return <RideSkeleton />;
+
+	
 	if (myRides.length === 0) {
 		return (
 			<div className="bg-white rounded-lg shadow-md p-8 mt-8 flex flex-col items-center justify-center text-center mx-auto max-w-md">

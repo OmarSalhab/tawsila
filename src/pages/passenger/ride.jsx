@@ -5,7 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import carInterior from "../../assets/machine-inside-interior-of-the-vehicle-vector-2AKH64B.jpg";
 import useSocket from "../../hooks/useSocket";
 import useRide from "../../hooks/useRide";
-import RideSkeleton from "../../components/rideSkeleton";
+import RoomSkeleton from "../../components/roomSkeleton";
 const formatTime = (time) => {
 	const formatedTime =
 		parseInt(time.split(":")[0]) >= 12
@@ -33,6 +33,7 @@ export default function Ride() {
 	]);
 	useEffect(() => {
 		if (rides) {
+			
 			const targetRide = rides.find(
 				(ride) => ride._id.toString() === tripId.toString()
 			);
@@ -60,7 +61,7 @@ export default function Ride() {
 		}
 	};
 
-	if (!ride) return <RideSkeleton />;
+	if (!ride) return <RoomSkeleton />;
 
 	return (
 		<div className="h-screen bg-gray-50 ">

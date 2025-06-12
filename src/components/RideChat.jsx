@@ -9,12 +9,11 @@ import { getRoomChat } from "../services/chatApi";
 export default function RideChat({ tripId }) {
 	const [isTyping, setIsTyping] = useState(false);
 	const [messages, setMessages] = useState([]);
-	const messagesEndRef = useRef(null); // Add this ref
-	const { user } = useAuth();
-
-	const { socket,activeRoomMemebersCount } = useSocket();
-	// const [members, setMembers] = useState(0);
 	const [replayToUser, setReplayToUser] = useState(null);
+	
+	const messagesEndRef = useRef(null);
+	const { user } = useAuth();
+	const { socket } = useSocket();
 
 	const handleSubmit = (inputValue) => {
 		if (!inputValue.trim()) return;

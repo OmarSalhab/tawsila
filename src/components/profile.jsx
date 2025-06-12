@@ -2,6 +2,8 @@ import { X, User } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 import ProfileSetting from "./profileSetting";
 import { useState } from "react";
+
+
 export default function Profile({ open, onClose }) {
 	const { user, logout } = useAuth();
 	const [isProfileOpen, setIsProfileOpen] = useState(false);
