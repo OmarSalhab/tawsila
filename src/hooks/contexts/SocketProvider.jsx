@@ -1,5 +1,5 @@
 import io from "socket.io-client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Context } from "../useSocket";
 import useAuth from "../useAuth";
 const SocketProvider = ({ children }) => {
@@ -51,9 +51,26 @@ const SocketProvider = ({ children }) => {
 		}
 	}, [socket]);
 
+	const joinRoom = useCallback(
+			(tripId) => {
+				console.log("Joining room", tripId);
+				socket.emit("join_room", tripId);
+			},
+			[socket]
+		);
+		const leaveRoom = useCallback(
+			(tripId) => {
+				console.log("leaving room", tripId);
+				socket.emit("leave_room", tripId);
+			},
+			[socket]
+		);
+
 	useEffect(() => {
 		if (socket) {
 			socket.on("room_memebers_count", (count) => {
+				console.log(count);
+				
 				setActiveRoomMemebersCount(count);
 			});
 
@@ -65,7 +82,7 @@ const SocketProvider = ({ children }) => {
 		}
 	}, [socket]);
 	return (
-		<Context.Provider value={{ socket, activeMemebersCount,activeRoomMemebersCount }}>
+		<Context.Provider value={{ socket, activeMemebersCount,activeRoomMemebersCount,setActiveRoomMemebersCount,joinRoom,leaveRoom }}>
 			{children}
 		</Context.Provider>
 	);

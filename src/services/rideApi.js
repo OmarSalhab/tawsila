@@ -76,8 +76,6 @@ export const kickPassenger = async (passengerId, tripId) => {
 			`/api/trips/kick/${tripId}/${passengerId}`,
 			{ withCredentials: true }
 		);
-		console.log(response);
-		
 		return response.data.data;
 	} catch (error) {
 		throw error.data?.data?.message || error;

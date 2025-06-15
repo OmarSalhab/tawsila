@@ -7,15 +7,15 @@ import useRide from "../../hooks/useRide";
 import useSocket from "../../hooks/useSocket";
 import carInterior from "../../assets/machine-inside-interior-of-the-vehicle-vector-2AKH64B.jpg";
 import RoomSkeleton from "../../components/roomSkeleton";
-import { getPassengers, kickPassenger } from "../../services/rideApi";
+import { getPassengers } from "../../services/rideApi";
 
 export default function Ride() {
 	const [selectedSeat, setSelectedSeat] = useState(null);
 	const [tab, setTab] = useState("Passengers");
 	const [ride, setRide] = useState(null);
 	const [passengers, setPassengers] = useState(null);
-	const { activeRoomMemebersCount } = useSocket();
-	const { isPassengerJoined, rides } = useRide();
+	const { socket, activeRoomMemebersCount, joinRoom, leaveRoom } = useSocket();
+	const { isPassengerJoined, rides, kickPassenger } = useRide();
 	const { tripId } = useParams();
 	const [seatLayout, setSeatLayout] = useState([
 		{ id: 1, label: "Front", booked: false },
@@ -26,13 +26,14 @@ export default function Ride() {
 
 	const handleKickPassenger = async (passengerId) => {
 		try {
-			const response = await kickPassenger(passengerId, tripId);
-			console.log(response);
+			await kickPassenger(passengerId, tripId);
 		} catch (error) {
 			console.log(error);
 		}
 	};
+
 	const handleCompletion = async () => {};
+
 	useEffect(() => {
 		if (rides) {
 			const targetRide = rides.find(
@@ -54,8 +55,12 @@ export default function Ride() {
 				);
 				const getUsers = async () => {
 					try {
+						console.log("the effect that will run after the rides updated");
+
 						const users = targetRide.joinedPassengers.map((p) => p.passenger);
 						const response = await getPassengers(tripId, users);
+						console.log(`the new users array ${response}`);
+
 						setPassengers(response);
 					} catch (error) {
 						console.log(error);
@@ -65,6 +70,15 @@ export default function Ride() {
 			}
 		}
 	}, [rides, tripId]);
+
+	useEffect(() => {
+		if (socket && tripId) {
+			joinRoom(tripId);
+			return () => {
+				leaveRoom(tripId);
+			};
+		}
+	}, [socket, tripId, joinRoom, leaveRoom]);
 
 	if (!ride) return <RoomSkeleton />;
 

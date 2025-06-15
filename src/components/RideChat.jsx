@@ -10,12 +10,12 @@ export default function RideChat({ tripId }) {
 	const [isTyping, setIsTyping] = useState(false);
 	const [messages, setMessages] = useState([]);
 	const [replayToUser, setReplayToUser] = useState(null);
-	
+
 	const messagesEndRef = useRef(null);
 	const { user } = useAuth();
 	const { socket } = useSocket();
 
-	const handleSubmit = (inputValue) => {
+	const handleSubmit = async (inputValue) => {
 		if (!inputValue.trim()) return;
 		if (replayToUser) {
 			socket?.emit("send_room_message", {
@@ -38,6 +38,9 @@ export default function RideChat({ tripId }) {
 		}
 	};
 
+	const scrollToBottom = () => {
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	};
 	useEffect(() => {
 		if (socket) {
 			const handleMessage = (message) => {
@@ -93,19 +96,11 @@ export default function RideChat({ tripId }) {
 		}
 	}, [tripId]);
 
-	useEffect(() => {
-		if (socket && tripId) {
-			socket.emit("join_room", tripId);
-		}
-	}, [socket, tripId]);
-
-	const scrollToBottom = () => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	};
 
 	useEffect(() => {
 		scrollToBottom();
 	}, [messages]);
+
 	return (
 		<div
 			className={`flex flex-col ${isTyping ? "h-[53%]" : "h-[86%]"} bg-white`}

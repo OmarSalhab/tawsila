@@ -1,7 +1,11 @@
 import { useReducer, useCallback, useEffect } from "react";
 import { RideContext } from "../useRide";
 import useAuth from "../useAuth";
-import { getAvailableTrips, joinRide } from "../../services/rideApi";
+import {
+	getAvailableTrips,
+	joinRide,
+	kickPassenger as kickPassengerApi,
+} from "../../services/rideApi";
 import useSocket from "../useSocket";
 import { useLocation } from "react-router-dom";
 const initialState = {
@@ -54,19 +58,29 @@ const RideReducer = (state, { type, payload }) => {
 			return { ...state, driverRides: filteredRides, filterLoading: false };
 		}
 
-		case "KICK_PASSENGER": {
-			const { tripId, passengerId } = payload;
+		case "KICK_REALTIME_PASSENGER": {
+			const { tripId, passenger, allRides } = payload;
 			const updatedRides = state.rides.map((ride) =>
 				ride._id === tripId
 					? {
 							...ride,
 							joinedPassengers: ride.joinedPassengers.filter(
-								(p) => p.passenger !== passengerId
+								(p) => p.passenger !== passenger
 							),
 					  }
 					: ride
 			);
-			return { ...state, rides: updatedRides };
+			const isCurrentUser = passenger === state.currentUserId;
+			console.log(
+				`is current user: ${isCurrentUser}, allRides ${allRides}, updatedRides ${updatedRides}`
+			);
+
+			return {
+				...state,
+				passengerRoom: isCurrentUser ? null : state.passengerRoom,
+				rides: isCurrentUser ? allRides : updatedRides,
+				isPassengerJoined: isCurrentUser ? false : state.isPassengerJoined,
+			};
 		}
 
 		case "COMPLETE_RIDE": {
@@ -100,8 +114,8 @@ const RideReducer = (state, { type, payload }) => {
 
 		case "ADD_REALTIME_PASSENGER": {
 			const { tripId, passenger, seatId, ride } = payload;
-			console.log(tripId,passenger,seatId,ride);
-			
+			console.log(tripId, passenger, seatId, ride);
+
 			const updatedRides = state.rides.map((Ride) =>
 				Ride._id === tripId
 					? {
@@ -139,6 +153,16 @@ const RideProvider = ({ children }) => {
 			return error;
 		}
 	}, []);
+
+	const kickPassenger = useCallback(async (passengerId, tripId) => {
+		try {
+			await kickPassengerApi(passengerId, tripId);
+		} catch (error) {
+			console.log(error);
+		}
+	}, []);
+
+	
 
 	//RESPONSIBLE FOR FETCHING RIDES AND HANDLEING JOINED PASSENGERS ONE TIME OR WHEN THE USER CHANGES
 	useEffect(() => {
@@ -193,20 +217,43 @@ const RideProvider = ({ children }) => {
 
 	//RESPONSIBLE FOR THE REALTIME UPDATES USING *SOCKET EVENTS
 	useEffect(() => {
+		const handleNewRide = (ride) => {
+			dispatch({ type: "ADD_NEW_REALTIME_RIDE", payload: ride });
+		};
+		const handlePassengerJoined = (message) => {
+			dispatch({ type: "ADD_REALTIME_PASSENGER", payload: message });
+		};
+		const handlePassengerKicked = async (message) => {
+			console.log(
+				`user id from the auth : ${user._id}, passenger id from socket emit ${message.passenger}`
+			);
+
+			if (message.passenger === user._id) {
+				const allRides = await getAvailableTrips();
+				console.log(
+					`the allRides got called after checking that the user is the same one that got kicked: ${allRides}`
+				);
+				dispatch({
+					type: "KICK_REALTIME_PASSENGER",
+					payload: { ...message, allRides },
+				});
+			} else {
+				dispatch({ type: "KICK_REALTIME_PASSENGER", payload: message });
+			}
+		};
 		if (socket && user) {
-			socket.on("new_ride", (ride) => {
-				dispatch({ type: "ADD_NEW_REALTIME_RIDE", payload: ride });
-			});
-
-			socket.on("passenger_joined", (message) => {
-				dispatch({ type: "ADD_REALTIME_PASSENGER", payload: message });
-			});
-
-			return () => {
-				socket.off("new_ride");
-				socket.off("passenger_joined");
-			};
+			socket.on("new_ride", handleNewRide);
+			socket.on("passenger_joined", handlePassengerJoined);
+			socket.on("room_passenger_kicked", handlePassengerKicked);
 		}
+
+		return () => {
+			if (socket) {
+				socket.off("new_ride", handleNewRide);
+				socket.off("passenger_joined", handlePassengerJoined);
+				socket.off("room_passenger_kicked", handlePassengerKicked);
+			}
+		};
 	}, [socket, user]);
 
 	useEffect(() => {
@@ -220,8 +267,11 @@ const RideProvider = ({ children }) => {
 			dispatch({ type: "CLEAR" });
 		}
 	}, [user]);
+
 	return (
-		<RideContext.Provider value={{ ...state, joinPassenger }}>
+		<RideContext.Provider
+			value={{ ...state, joinPassenger, kickPassenger }}
+		>
 			{children}
 		</RideContext.Provider>
 	);

@@ -24,7 +24,7 @@ export default function Ride() {
 	const { tripId } = useParams();
 	const [ride, setRide] = useState(null);
 	const { isPassengerJoined, joinPassenger, rides } = useRide();
-	const { activeRoomMemebersCount } = useSocket();
+	const { socket, activeRoomMemebersCount, joinRoom, leaveRoom } = useSocket();
 	const [seatLayout, setSeatLayout] = useState([
 		{ id: 1, label: "Front", booked: false },
 		{ id: 2, label: "Left Back", booked: false },
@@ -33,7 +33,6 @@ export default function Ride() {
 	]);
 	useEffect(() => {
 		if (rides) {
-			
 			const targetRide = rides.find(
 				(ride) => ride._id.toString() === tripId.toString()
 			);
@@ -60,6 +59,15 @@ export default function Ride() {
 			console.error(error);
 		}
 	};
+
+	useEffect(() => {
+		if (socket && tripId) {
+			joinRoom(tripId);
+			return () => {
+				leaveRoom(tripId);
+			};
+		}
+	}, [socket, tripId, joinRoom, leaveRoom]);
 
 	if (!ride) return <RoomSkeleton />;
 
