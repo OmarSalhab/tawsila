@@ -7,15 +7,21 @@ import useRide from "../../hooks/useRide";
 import useSocket from "../../hooks/useSocket";
 import carInterior from "../../assets/machine-inside-interior-of-the-vehicle-vector-2AKH64B.jpg";
 import RoomSkeleton from "../../components/roomSkeleton";
-import { getPassengers } from "../../services/rideApi";
+import { getPassengers, ratePassenger } from "../../services/rideApi";
+import RatingModal from "../../components/ratingModal";
+import { useToast } from "../../hooks/useToast";
+
 
 export default function Ride() {
 	const [selectedSeat, setSelectedSeat] = useState(null);
 	const [tab, setTab] = useState("Passengers");
 	const [ride, setRide] = useState(null);
 	const [passengers, setPassengers] = useState(null);
+	const [showModal, setShowModal] = useState(false);
+	const [isCompleted,setIsCompleted] = useState(false);
 	const { socket, activeRoomMemebersCount, joinRoom, leaveRoom } = useSocket();
 	const { isPassengerJoined, rides, kickPassenger } = useRide();
+	const {addToast} = useToast();
 	const { tripId } = useParams();
 	const [seatLayout, setSeatLayout] = useState([
 		{ id: 1, label: "Front", booked: false },
@@ -32,8 +38,23 @@ export default function Ride() {
 		}
 	};
 
-	const handleCompletion = async () => {};
+	const handleCompletion = async () => {
+		console.log(ride);
+		if(ride.joinedPassengers.length === ride.availableSeats && new Date(ride.departureTime) < new Date()){
+			setShowModal(true);
+		}else{
+			addToast("Ride didn't finish yet.","info");
+		}
 
+	};
+
+	const handleSubmitRatings = async (ratings) => {
+		try {
+			await ratePassenger(tripId, ratings);
+		} catch (error) {
+			console.log(error);
+		}
+	};
 	useEffect(() => {
 		if (rides) {
 			const targetRide = rides.find(
@@ -264,22 +285,20 @@ export default function Ride() {
 						</div>
 						<button
 							type="button"
-							disabled={isPassengerJoined}
+							disabled={isCompleted}
 							className="w-full bg-primary text-white font-semibold py-2 rounded-md mt-6 disabled:bg-secondary"
 							onClick={handleCompletion}
 						>
-							{false ? (
-								<div className="flex justify-center items-center gap-2 ">
-									<CarFront className="w-6 h-6 text-white" />
-									<div className="font-semibold">
-										Joined, Wait To Get Picked Up!
-									</div>
-								</div>
-							) : (
-								"Ride Is Completed"
-							)}
+							Complete Ride
 						</button>
 					</div>
+					<RatingModal
+						open={showModal}
+						onClose={() => setShowModal(false)}
+						users={passengers}
+						onSubmit={handleSubmitRatings}
+						role={"driver"}
+					/>
 				</>
 			) : (
 				<RideChat tripId={tripId} />

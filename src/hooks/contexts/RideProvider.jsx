@@ -109,7 +109,7 @@ const RideReducer = (state, { type, payload }) => {
 			const updatedRides = [...state.rides, payload].sort(
 				(a, b) => new Date(a.departureTime) - new Date(b.departureTime)
 			);
-			return { ...state, rides: updatedRides };
+			return { ...state, rides: state.isPassengerJoined ? state.rides : updatedRides, };
 		}
 
 		case "ADD_REALTIME_PASSENGER": {
@@ -161,8 +161,6 @@ const RideProvider = ({ children }) => {
 			console.log(error);
 		}
 	}, []);
-
-	
 
 	//RESPONSIBLE FOR FETCHING RIDES AND HANDLEING JOINED PASSENGERS ONE TIME OR WHEN THE USER CHANGES
 	useEffect(() => {
@@ -241,6 +239,7 @@ const RideProvider = ({ children }) => {
 				dispatch({ type: "KICK_REALTIME_PASSENGER", payload: message });
 			}
 		};
+
 		if (socket && user) {
 			socket.on("new_ride", handleNewRide);
 			socket.on("passenger_joined", handlePassengerJoined);
@@ -269,9 +268,7 @@ const RideProvider = ({ children }) => {
 	}, [user]);
 
 	return (
-		<RideContext.Provider
-			value={{ ...state, joinPassenger, kickPassenger }}
-		>
+		<RideContext.Provider value={{ ...state, joinPassenger, kickPassenger }}>
 			{children}
 		</RideContext.Provider>
 	);

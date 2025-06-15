@@ -81,3 +81,18 @@ export const kickPassenger = async (passengerId, tripId) => {
 		throw error.data?.data?.message || error;
 	}
 };
+
+export const ratePassenger = async (tripId, ratings) => {
+	try {
+		const response = await apiClient.post(
+			`/api/trips/rate-passenger/${tripId}`,
+			{ratings},
+			{ withCredentials: true }
+		);
+		console.log(response);
+		
+		return response.data.data;
+	} catch (error) {
+		throw error.data?.data?.message || error;
+	}
+};
