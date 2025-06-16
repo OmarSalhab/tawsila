@@ -5,10 +5,11 @@ import useAuth from "../hooks/useAuth";
 import ChatInput from "./chatInput";
 import useSocket from "../hooks/useSocket";
 import { getRoomChat } from "../services/chatApi";
+import MessageSkeleton from "./messageSkeleton";
 
 export default function RideChat({ tripId }) {
 	const [isTyping, setIsTyping] = useState(false);
-	const [messages, setMessages] = useState([]);
+	const [messages, setMessages] = useState(null);
 	const [replayToUser, setReplayToUser] = useState(null);
 
 	const messagesEndRef = useRef(null);
@@ -103,7 +104,7 @@ export default function RideChat({ tripId }) {
 
 	return (
 		<div
-			className={`flex flex-col ${isTyping ? "h-[53%]" : "h-[86%]"} bg-white`}
+			className={`flex flex-col h-[90%] bg-white`}
 		>
 			{/* Chat messages */}
 			<div
@@ -210,7 +211,7 @@ export default function RideChat({ tripId }) {
 						</p>
 					)
 				) : (
-					<div className="flex justify-center mt-5 text-xl">loading...</div>
+					<MessageSkeleton count={5}/>
 				)}
 			</div>
 			{/* Input Bar */}

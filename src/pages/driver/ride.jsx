@@ -76,8 +76,6 @@ export default function Ride() {
 				);
 				const getUsers = async () => {
 					try {
-						console.log("the effect that will run after the rides updated");
-
 						const users = targetRide.joinedPassengers.map((p) => p.passenger);
 						const response = await getPassengers(tripId, users);
 						console.log(`the new users array ${response}`);

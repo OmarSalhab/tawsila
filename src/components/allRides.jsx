@@ -34,7 +34,7 @@ export default function AllRides({ user, rides, isPassengerJoined,passengerRoom 
 										</span>
 									</span>
 									<span
-										className={`text-sm font-semibold ${
+										className={`text-xs font-semibold ${
 											trip.driverId.gender === "male"
 												? "text-blue-600"
 												: "text-pink-600"
@@ -43,14 +43,14 @@ export default function AllRides({ user, rides, isPassengerJoined,passengerRoom 
 										{trip.driverId.gender.charAt(0).toUpperCase() +
 											trip.driverId.gender.slice(1)}
 									</span>
-									<span className="flex items-center text-black-500 text-sm font-semibold bg-yellow-100 rounded px-1.5 py-0.5 ml-2">
+									<span className="flex items-center text-black-500 text-xs font-semibold bg-yellow-100 rounded px-1.5 py-0.5 ml-2">
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											fill="none"
 											viewBox="0 0 24 24"
 											strokeWidth={1.5}
 											stroke="currentColor"
-											className="w-4 h-4 mr-0.5 text-secondary"
+											className="w-3 fill-current h-3 mr-0.5 text-secondary"
 										>
 											<path
 												strokeLinecap="round"
@@ -60,8 +60,8 @@ export default function AllRides({ user, rides, isPassengerJoined,passengerRoom 
 										</svg>
 										{trip.driverId.ratingValue}
 									</span>
-									<div className="flex flex-col">
-										<span className="bg-gray-100 text-primary text-md font-medium rounded px-4 py-0.5 ml-2">
+									<div className="flex flex-col items-end">
+										<span className="bg-sky-200 text-primary text-sm font-medium p-[2px] rounded-sm">
 											{new Date(trip.departureTime) <= new Date()
 												? `Ended`
 												: trip.dayMonth ===
@@ -72,7 +72,7 @@ export default function AllRides({ user, rides, isPassengerJoined,passengerRoom 
 												? `Today`
 												: `Tomorrow`}
 										</span>
-										<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
+										<span className="bg-gray-100 text-gray-700 text-xs font-semibold rounded px-4 py-0.5 ml-2">
 											{formatTime(trip.time)}
 										</span>
 									</div>
@@ -91,7 +91,7 @@ export default function AllRides({ user, rides, isPassengerJoined,passengerRoom 
 									</div>
 									<span className="text-right w-1/5">
 										<span className="block text-xs text-gray-400">Price</span>
-										<span className="text-lg font-semibold text-gray-900">
+										<span className="text-sm font-semibold text-gray-900">
 											{`${trip.price.toFixed(2)} JD`}
 										</span>
 									</span>
@@ -147,7 +147,7 @@ export default function AllRides({ user, rides, isPassengerJoined,passengerRoom 
 										</span>
 									</span>
 									<span
-										className={`text-sm font-semibold ${
+										className={`text-xs font-semibold ${
 											trip.driverId.gender === "male"
 												? "text-blue-600"
 												: "text-pink-600"
@@ -156,14 +156,14 @@ export default function AllRides({ user, rides, isPassengerJoined,passengerRoom 
 										{trip.driverId.gender.charAt(0).toUpperCase() +
 											trip.driverId.gender.slice(1)}
 									</span>
-									<span className="flex items-center text-black-500 text-sm font-semibold bg-yellow-100 rounded px-1.5 py-0.5 ml-2">
+									<span className="flex items-center text-black-500 text-xs font-semibold bg-yellow-100 rounded px-1.5 py-0.5 ml-2">
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											fill="none"
 											viewBox="0 0 24 24"
 											strokeWidth={1.5}
 											stroke="currentColor"
-											className="w-4 h-4 mr-0.5 text-secondary"
+											className="w-3 fill-current h-3 mr-0.5 text-secondary"
 										>
 											<path
 												strokeLinecap="round"
@@ -173,8 +173,8 @@ export default function AllRides({ user, rides, isPassengerJoined,passengerRoom 
 										</svg>
 										{trip.driverId.ratingValue}
 									</span>
-									<div className="flex flex-col">
-										<span className="bg-gray-100 text-primary text-md font-medium rounded px-4 py-0.5 ml-2">
+									<div className="flex flex-col items-end">
+										<span className="bg-sky-200 text-primary text-sm font-medium p-[2px] rounded-sm">
 											{new Date(trip.departureTime) <= new Date()
 												? `Ended`
 												: trip.dayMonth ===
@@ -185,7 +185,7 @@ export default function AllRides({ user, rides, isPassengerJoined,passengerRoom 
 												? `Today`
 												: `Tomorrow`}
 										</span>
-										<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
+										<span className="bg-gray-100 text-gray-700 text-xs font-semibold rounded px-4 py-0.5 ml-2">
 											{formatTime(trip.time)}
 										</span>
 									</div>
@@ -204,7 +204,7 @@ export default function AllRides({ user, rides, isPassengerJoined,passengerRoom 
 									</div>
 									<span className="text-right w-1/5">
 										<span className="block text-xs text-gray-400">Price</span>
-										<span className="text-lg font-semibold text-gray-900">
+										<span className="text-sm font-semibold text-gray-900">
 											{`${trip.price.toFixed(2)} JD`}
 										</span>
 									</span>

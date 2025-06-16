@@ -19,7 +19,7 @@ export default function DriverHome() {
 	return (
 		<div className="min-h-screen bg-gray-50 pb-24">
 			{/* Header */}
-			<div className="w-full bg-primary py-4 flex items-center justify-between px-4">
+			<div className="w-full bg-primary py-4 flex items-center justify-between px-4 ">
 				<User
 					className="text-white w-6 h-6 z-10"
 					onClick={() => setShowProfile(true)}

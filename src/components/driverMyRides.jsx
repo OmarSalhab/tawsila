@@ -39,7 +39,7 @@ export default function DriverMyRides({ myRides }) {
 							</span>
 						</span>
 						<span
-							className={`text-sm font-bold ${
+							className={`text-xs font-semibold ${
 								ride.driverId.gender === "male"
 									? "text-blue-500"
 									: "text-pink-500"
@@ -48,14 +48,14 @@ export default function DriverMyRides({ myRides }) {
 							{ride.driverId.gender.charAt(0).toUpperCase() +
 								ride.driverId.gender.slice(1)}
 						</span>
-						<span className="flex items-center text-black-500 text-sm font-semibold bg-yellow-100 rounded px-1.5 py-0.5 ml-2">
+						<span className="flex items-center text-black-500 text-xs font-semibold bg-yellow-100 rounded px-1.5 py-0.5 ml-2">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								fill="none"
 								viewBox="0 0 24 24"
 								strokeWidth={1.5}
 								stroke="currentColor"
-								className="w-4 h-4 mr-0.5 text-secondary"
+								className="w-3 h-3 fill-current mr-0.5 text-secondary"
 							>
 								<path
 									strokeLinecap="round"
@@ -65,8 +65,8 @@ export default function DriverMyRides({ myRides }) {
 							</svg>
 							{ride.driverId.ratingValue}
 						</span>
-						<div className="flex flex-col">
-							<span className="bg-gray-100 text-primary text-md font-medium rounded px-4 py-0.5 ml-2">
+						<div className="flex flex-col items-end">
+							<span className="bg-sky-200 text-primary text-sm font-medium p-[2px] rounded-sm">
 								{ride.dayMonth <=
 								new Date().toLocaleDateString("en-GB", {
 									day: "2-digit",
@@ -81,7 +81,7 @@ export default function DriverMyRides({ myRides }) {
 										: `Today`
 									: `Tomorrow`}
 							</span>
-							<span className="bg-gray-100 text-gray-700 text-md font-semibold rounded px-4 py-0.5 ml-2">
+							<span className="bg-gray-100 text-gray-700 text-xs font-semibold rounded px-4 py-0.5 ml-2">
 								{formatTime(ride.time)}
 							</span>
 						</div>
@@ -103,7 +103,7 @@ export default function DriverMyRides({ myRides }) {
 						</span>
 						<span className="text-right">
 							<span className="block text-xs text-gray-400">Price</span>
-							<span className="text-lg font-semibold text-gray-900">
+							<span className="text-sm font-semibold text-gray-900">
 								{`${ride.price.toFixed(2)} JD`}
 							</span>
 						</span>

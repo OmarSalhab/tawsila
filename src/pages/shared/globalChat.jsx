@@ -5,9 +5,10 @@ import ChatInput from "../../components/chatInput";
 import { useEffect, useRef, useState } from "react";
 import useSocket from "../../hooks/useSocket";
 import { getRouteChat, getMemebers } from "../../services/chatApi";
+import MessageSkeleton from "../../components/messageSkeleton";
 export default function GlobalChat() {
 	const [isTyping, setIsTyping] = useState(false);
-	const [messages, setMessages] = useState([]);
+	const [messages, setMessages] = useState(null);
 	const messagesEndRef = useRef(null); // Add this ref
 	const { user } = useAuth();
 	const { socket, activeMemebersCount } = useSocket();
@@ -111,9 +112,9 @@ export default function GlobalChat() {
 		scrollToBottom();
 	}, [messages]);
 	return (
-		<div className="h-screen bg-gray-50 ">
+		<div className="h-[90dvh] bg-gray-50">
 			{/* Header */}
-			<div className="w-full bg-primary py-4 flex items-center px-4">
+			<div className="w-full bg-primary py-4 flex items-center px-4 ">
 				<button type="button" className="text-white mr-2">
 					<Link to={`/home-${user?.role}`}>
 						<ArrowLeft className="w-6 h-6" />
@@ -144,7 +145,7 @@ export default function GlobalChat() {
 			</div>
 			{/* Chat Body */}
 			<div
-				className={`flex flex-col ${isTyping ? "h-[53%]" : "h-[90%]"} bg-white`}
+				className={`flex flex-col h-[100%] bg-white`}
 			>
 				<div
 					className="flex-1 overflow-y-auto px-2 py-4 space-y-4 bg-white"
@@ -251,7 +252,7 @@ export default function GlobalChat() {
 							</p>
 						)
 					) : (
-						<div className="flex justify-center mt-5 text-xl">loading...</div>
+						<MessageSkeleton/>
 					)}
 				</div>
 				{/* Input Bar */}

@@ -11,7 +11,7 @@ const SocketProvider = ({ children }) => {
 	useEffect(() => {
 		let socketInit = null;
 		if (isAuthenticated) {
-			socketInit = io("http://localhost:9001", {
+			socketInit = io(import.meta.env.VITE_BASE_URL, {
 				reconnection: true,
 				reconnectionAttempts: 3,
 			});
