@@ -87,7 +87,9 @@ export const ratePassenger = async (tripId, ratings) => {
 		const response = await apiClient.post(
 			`/api/trips/rate-passenger/${tripId}`,
 			{ratings},
-			{ withCredentials: true }
+			{ withCredentials: true,
+				
+			 }
 		);
 		console.log(response);
 		

@@ -7,6 +7,7 @@ import {
 import apiClient from "../../services/apiClient";
 import { AuthContext } from "../useAuth";
 import { updateUser as updateUserApi } from "../../services/updateUser";
+
 const initialState = {
 	user: undefined,
 	token: undefined,
@@ -14,6 +15,7 @@ const initialState = {
 	loading: false,
 	error: undefined,
 };
+
 const publicEndpoints = [
 	"/api/users/login",
 	"/api/users/register/passenger",

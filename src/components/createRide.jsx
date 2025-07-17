@@ -10,7 +10,7 @@ export default function CreateRide() {
 	const [price, setPrice] = useState("2.5JD");
 	const { addToast } = useToast();
 	const [description, setDescription] = useState("");
-	
+
 	// Get today's and tomorrow's dates in a nice format
 	const today = new Date();
 	const tomorrow = new Date(today);
@@ -23,53 +23,75 @@ export default function CreateRide() {
 			day: "numeric",
 		});
 	};
+	function getSelectedDateString(selectedDate) {
+		const today = new Date();
+		if (selectedDate === "today") {
+			return today.toISOString().slice(0, 10);
+		} else if (selectedDate === "tomorrow") {
+			const tomorrow = new Date(today);
+			tomorrow.setDate(today.getDate() + 1);
+			return tomorrow.toISOString().slice(0, 10);
+		}
+		return selectedDate;
+	}
 
-	const combineDateAndTime = (date, time) => {
-		if (!time) return null;
-
-		const selectedDate =
-			date === "today"
-				? new Date()
-				: new Date(new Date().setDate(new Date().getDate() + 1));
-		const [hours, minutes] = time.split(":").map(Number);
-
-		const combinedDateTime = new Date(selectedDate);
-		combinedDateTime.setHours(hours, minutes, 0, 0);
-
-		// Check if the selected time is in the past
-		const now = new Date();
-		if (combinedDateTime < now) {
-			addToast("Cannot select a time in the past", "info");
-			return false;
+	function combineDateAndTime(dateStr, timeStr) {
+		if (!dateStr || !timeStr) {
+			addToast("Select Date/Time", "info");
+			return null;
 		}
 
-		return combinedDateTime;
-	};
+		// Parse date and time as local time
+		const [year, month, day] = dateStr.split("-").map(Number);
+		const [hour, minute] = timeStr.split(":").map(Number);
+
+		if (!year || !month || !day || isNaN(hour) || isNaN(minute)) {
+			addToast("Select Date/Time", "info");
+			return null;
+		}
+
+		// Create a Date object in the user's local time zone
+		const localDate = new Date(year, month - 1, day, hour, minute, 0, 0);
+
+		
+		// Validate: must be in the future (local time)
+		const now = new Date();
+		console.log(localDate,now);
+		if (localDate <= now) {
+			addToast("You Can't Select Time In The Past", "info");
+			return null;
+		}
+
+		// Return as UTC ISO string for backend/database
+		return localDate.toISOString();
+	}
 
 	const handleSubmit = async () => {
-		const departureTime = combineDateAndTime(selectedDate, time);
+		const dateStr = getSelectedDateString(selectedDate);
+		const departureTime = combineDateAndTime(dateStr, time);
+		console.log(departureTime);
 		if (!departureTime) return;
-		const newPrice = parseFloat(price.split("JD")[0].trim());
-		const newForm = {
-			departureTime: departureTime,
-			price: newPrice,
-			description: description,
-			availableSeats: seats,
-		};
-		try {
-			const response = await createRide(newForm);
-			console.log(response);
 
-			addToast("created the ride successfully", "success");
-			setTime("");
-			setDescription("");
-			setOpen(false);
-		} catch (error) {
-			addToast(error.message, "error");
-		}
+		// const newPrice = parseFloat(price.split("JD")[0].trim());
+		// const newForm = {
+		// 	departureTime: departureTime,
+		// 	price: newPrice,
+		// 	description: description,
+		// 	availableSeats: seats,
+		// };
+		// try {
+		// 	const response = await createRide(newForm);
+		// 	console.log(response);
+
+		// 	addToast("created the ride successfully", "success");
+		// 	setTime("");
+		// 	setDescription("");
+		// 	setOpen(false);
+		// } catch (error) {
+		// 	addToast(error.message, "error");
+		// }
 	};
 
-	
 	useEffect(() => {
 		if (seats === 1) setPrice("7JD");
 		if (seats === 2) setPrice("5JD");

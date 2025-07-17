@@ -36,6 +36,14 @@ export default function Signup() {
 	const navigate = useNavigate();
 	const { addToast } = useToast();
 	const [showPassword, setShowPassword] = useState(false);
+	
+	const initialValues = {
+		name: "",
+		phone: "",
+		password: "",
+		gender: "",
+		routeId: routeOptions?.[0]?._id || "",
+	};
 	useEffect(() => {
 		const getRoutes = async () => {
 			try {
@@ -54,13 +62,6 @@ export default function Signup() {
 		getRoutes();
 	}, []);
 
-	const initialValues = {
-		name: "",
-		phone: "",
-		password: "",
-		gender: "",
-		routeId: routeOptions?.[0]?._id || "",
-	};
 
 	return (
 		<div className="min-h-screen flex flex-col items-center bg-gray-50">

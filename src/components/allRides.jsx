@@ -2,7 +2,7 @@ import RideSkeleton from "./rideSkeleton";
 import { useNavigate } from "react-router-dom";
 import { formatTime } from "../services/formatTime";
 
-export default function AllRides({ user, rides, isPassengerJoined,passengerRoom }) {
+export default function AllRides({ user, rides,passengerRoom }) {
 	const navigate = useNavigate();
 
 	if (user.role === "passenger") {
